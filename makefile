@@ -18,6 +18,9 @@ all: $(EXEC)
 debug: CC_FLAGS += -DDEBUG -g
 debug: $(EXEC)
 
+release: CC_FLAGS += -Werror
+release: $(EXEC)
+
 $(EXEC): $(OBJECTS)
 	$(CC) $(OBJECTS) $(LFLAGS) -o $(EXEC)
 
