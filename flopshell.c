@@ -35,9 +35,9 @@ static const char *SHELL_PROMPT = "flop: ";
 
 // Commands that can be executed
 static const struct FlopCommand AVAILABLE_COMMANDS[] = {
-	{"fmount", fmount},
-	{"fumount", fumount},
-	{"help", print_help},
+	{"fmount", command_fmount},
+	{"fumount", command_fumount},
+	{"help", command_help},
 	{"showfat", showfat},
 	{"showfile", showfile},
 	{"showsector", showsector},
@@ -102,7 +102,7 @@ static void flopshell_run() {
 	}
 
 	if(flopdata.rawData != NULL) {
-		fumount(&flopdata, 0, 0);
+		fumount(&flopdata);
 	}
 }
 

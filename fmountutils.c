@@ -9,7 +9,7 @@
 #include "fmountutils.h"
 
 // Mounts a FAT12 img file into the FlopData's image data
-int fmount(struct FlopData *flopdata, int argc, char **argv) {
+int command_fmount(struct FlopData *flopdata, int argc, char **argv) {
 	// TODO: Add checks to catch errors
 	
 	if(argc != 2) {
@@ -33,16 +33,23 @@ int fmount(struct FlopData *flopdata, int argc, char **argv) {
 
 
 // Unmounts the given FlopData image data
-int fumount(struct FlopData *flopdata, int argc, char **argv) {
+int command_fumount(struct FlopData *flopdata, int argc, char **argv) {
 	
 	if(flopdata->rawData == NULL) {
 		fprintf(stdout, "Warning: There was no image mounted.\n");
 	}
 	
+	fumount(flopdata);
+	
+	printf("The image was successfully unmounted.\n");
+	return 0;
+}
+
+
+// Unmount the given image data
+int fumount(struct FlopData *flopdata) {
 	free(flopdata->rawData);
 	
 	flopdata->rawData = NULL;
 	flopdata->rawDataLen = 0;
-	printf("The image was successfully unmounted.\n");
-	return 0;
 }

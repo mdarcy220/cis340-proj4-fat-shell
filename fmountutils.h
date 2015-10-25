@@ -3,7 +3,8 @@
 
 #include "flop.h"
 
-int fmount(struct FlopData*, int, char**);
-int fumount(struct FlopData*, int, char**);
+int command_fmount(struct FlopData*, int, char**);
+int command_fumount(struct FlopData*, int, char**);
+int fumount(struct FlopData*);
 
 #endif
