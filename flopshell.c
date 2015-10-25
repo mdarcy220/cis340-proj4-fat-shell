@@ -60,6 +60,7 @@ static void flopshell_run() {
 		userinput[inputlen-1] = '\0';
 		
 		if(strcmp(userinput, "quit") == 0) {
+			free(userinput);
 			break;
 		}
 		
@@ -88,7 +89,10 @@ static void flopshell_run() {
 			free(commandArgs[i]);
 		}
 		free(commandArgs);
+		free(userinput);
 	}
+	
+	free(flopdata.rawData);
 }
 
 
@@ -129,9 +133,10 @@ static size_t parse_command_args(char* commandStr, StringArray *argsArr, size_t 
 // Copies the given string into the given buffer, expanding the buffer using realloc if necessary
 static void add_str_to_arr(char *str, StringArray *arr, size_t arrLen, size_t *arrCap) {
 	if(*arrCap < arrLen+1) {
-		*arr = realloc(*arr, ++(*arrCap));
+		(*arrCap)++;
+		*arr = realloc(*arr, (*arrCap)*sizeof(**arr));
 	}
-	(*arr)[arrLen] = malloc(strlen(str)*sizeof(*str));
+	(*arr)[arrLen] = malloc((strlen(str) + 1)*sizeof(*str));
 	strcpy((*arr)[arrLen], str);
 }
 
