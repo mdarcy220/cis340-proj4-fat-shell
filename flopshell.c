@@ -1,33 +1,44 @@
-#include "flopshell.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+
+#include "flopshell.h"
+#include "flop.h"
+
+// include shell command functions
+#include "fmountutils.h"
+#include "showfat.h"
+#include "showfile.h"
+#include "showsector.h"
+#include "structure.h"
+#include "traverse.h"
+
+
+// Commands that can be executed
+static const struct FlopCommand AVAILABLE_COMMANDS[] = {
+	{"fmount", fmount},
+	{"fumount", fumount},
+	{"showfat", showfat},
+	{"showfile", showfile},
+	{"showsector", showsector},
+	{"structure", structure},
+	{"traverse", traverse},
+	{0}
+};
+
 
 typedef char** StringArray;
-//typedef enum {FALSE=0, TRUE} bool;
 
 static void flopshell_run();
-static int quit(struct FlopData*, int, char**);
 static size_t parse_command_args(char*, StringArray*, size_t*);
 static void add_str_to_arr(char*, StringArray*, size_t, size_t*);
 static const struct FlopCommand* get_shell_command(char*);
 
-int fmount(struct FlopData*, int, char**);
-int fumount(struct FlopData*, int, char**);
-
-static const struct FlopCommand AVAILABLE_COMMANDS[] = {
-	{"fmount", fmount},
-	{"fumount", fumount},
-	{0}
-};
 
 static const char *SHELL_PROMPT = "flop: ";
 
 
+// Start the flop shell
 void flopshell_start() {
 	flopshell_run();
 }
@@ -37,8 +48,6 @@ void flopshell_start() {
 static void flopshell_run() {
 	
 	struct FlopData flopdata = {NULL, 0};
-	
-	//bool hasquit = FALSE;
 	
 	for(;;) {
 		// Get command from user
@@ -80,14 +89,6 @@ static void flopshell_run() {
 		}
 		free(commandArgs);
 	}
-}
-
-
-// Quits the program
-static int quit(struct FlopData* flopdata, int argc, char **argv) {
-	// exit(0);
-	
-	return EXIT_SUCCESS;
 }
 
 
@@ -145,42 +146,4 @@ static const struct FlopCommand* get_shell_command(char *commandName) {
 	}
 	
 	return NULL;
-}
-
-
-// Mounts a FAT12 img file into the FlopData's image data
-int fmount(struct FlopData *flopdata, int argc, char **argv) {
-	// TODO: Add checks to catch errors
-	
-	if(argc != 2) {
-		fprintf(stderr, "Invalid number of arguments.\n");
-		return EXIT_FAILURE;
-	}
-	
-	if(flopdata->rawData != NULL) {
-		fprintf(stderr, "Error. There is an image already mounted. Please unmount it using fumount and try again.\n");
-		return EXIT_FAILURE;
-	}
-	
-	flopdata->rawData = malloc((2880*512 + 1)*sizeof(*flopdata->rawData));
-	
-	int fd = open(argv[1], O_RDONLY);
-	flopdata->rawDataLen = read(fd, flopdata->rawData, 2880*512);
-	close(fd);
-	
-	return 0;
-}
-
-
-// Unmounts the given FlopData image data
-int fumount(struct FlopData *flopdata, int argc, char **argv) {
-	
-	if(flopdata->rawData == NULL) {
-		fprintf(stdout, "Warning: There was no image mounted.\n");
-	}
-	
-	flopdata->rawData = NULL;
-	flopdata->rawDataLen = 0;
-	printf("The image was successfully unmounted.\n");
-	return 0;
 }

@@ -2,12 +2,9 @@
 #define FLOPSHELL_H_
 
 #include <stdlib.h>
+#include "flop.h"
 
-struct FlopData {
-	char * rawData;
-	size_t rawDataLen;
-};
-
+// Represents a shell command
 struct FlopCommand {
 	char *commandName;
 	int (*execute)(struct FlopData* flopdata, int argc, char **argv);
