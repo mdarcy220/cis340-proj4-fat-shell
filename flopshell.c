@@ -32,7 +32,7 @@ static const struct FlopCommand AVAILABLE_COMMANDS[] = {
 	{"showfat", showfat},
 	{"showfile", showfile},
 	{"showsector", showsector},
-	{"structure", structure},
+	{"structure", print_fs_structure},
 	{"traverse", traverse},
 	{0}
 };
