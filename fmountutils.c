@@ -39,6 +39,8 @@ int fumount(struct FlopData *flopdata, int argc, char **argv) {
 		fprintf(stdout, "Warning: There was no image mounted.\n");
 	}
 	
+	free(flopdata->rawData);
+	
 	flopdata->rawData = NULL;
 	flopdata->rawDataLen = 0;
 	printf("The image was successfully unmounted.\n");

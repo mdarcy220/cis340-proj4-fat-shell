@@ -7,11 +7,19 @@
 
 // include shell command functions
 #include "fmountutils.h"
+#include "help.h"
 #include "showfat.h"
 #include "showfile.h"
 #include "showsector.h"
 #include "structure.h"
 #include "traverse.h"
+
+
+// Represents a shell command
+struct FlopCommand {
+	char *commandName;
+	int (*execute)(struct FlopData* flopdata, int argc, char **argv);
+};
 
 
 typedef char** StringArray;
@@ -29,6 +37,7 @@ static const char *SHELL_PROMPT = "flop: ";
 static const struct FlopCommand AVAILABLE_COMMANDS[] = {
 	{"fmount", fmount},
 	{"fumount", fumount},
+	{"help", print_help},
 	{"showfat", showfat},
 	{"showfile", showfile},
 	{"showsector", showsector},
@@ -59,7 +68,7 @@ static void flopshell_run() {
 		// Remove the newline character at the end of the buffer
 		userinput[inputlen-1] = '\0';
 		
-		if(strcmp(userinput, "quit") == 0) {
+		if(strcmp(userinput, "quit") == 0 || strcmp(userinput, "q") == 0) {
 			free(userinput);
 			break;
 		}
@@ -91,8 +100,10 @@ static void flopshell_run() {
 		free(commandArgs);
 		free(userinput);
 	}
-	
-	free(flopdata.rawData);
+
+	if(flopdata.rawData != NULL) {
+		fumount(&flopdata, 0, 0);
+	}
 }
 
 
