@@ -28,6 +28,9 @@ struct FlopData {
 	
 	// Size of each sector, in bytes
 	int sectorSize;
+	
+	// Number of reserved sectors preceeding FAT tables
+	int nReservedSectors;
 };
 
 #endif
