@@ -14,6 +14,17 @@
 #include "traverse.h"
 
 
+typedef char** StringArray;
+
+
+static void flopshell_run();
+static size_t parse_command_args(char*, StringArray*, size_t*);
+static void add_str_to_arr(char*, StringArray*, size_t, size_t*);
+static const struct FlopCommand* get_shell_command(char*);
+
+
+static const char *SHELL_PROMPT = "flop: ";
+
 // Commands that can be executed
 static const struct FlopCommand AVAILABLE_COMMANDS[] = {
 	{"fmount", fmount},
@@ -25,17 +36,6 @@ static const struct FlopCommand AVAILABLE_COMMANDS[] = {
 	{"traverse", traverse},
 	{0}
 };
-
-
-typedef char** StringArray;
-
-static void flopshell_run();
-static size_t parse_command_args(char*, StringArray*, size_t*);
-static void add_str_to_arr(char*, StringArray*, size_t, size_t*);
-static const struct FlopCommand* get_shell_command(char*);
-
-
-static const char *SHELL_PROMPT = "flop: ";
 
 
 // Start the flop shell

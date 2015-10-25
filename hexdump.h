@@ -3,6 +3,6 @@
 
 #include <stdlib.h>
 
-void hexdump(const void*, size_t);
+void print_hex_dump(const void*, size_t);
 
 #endif

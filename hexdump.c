@@ -5,7 +5,7 @@
 
 
 // Print data as a hex dump
-void hexdump(const void *data, size_t datalen) {
+void print_hex_dump(const void *data, size_t datalen) {
 	// Check how much padding is needed for left column
 	int leftPadding = 1;
 	int datalentmp = datalen;
