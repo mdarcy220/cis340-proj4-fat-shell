@@ -22,9 +22,7 @@ void print_hex_dump(const void *data, size_t datalen) {
 		int i;
 		for(i = 0; i < 16; i++) {
 			if(offset < datalen) {
-				char hex[3];
-				sprintf(hex, "%02X", ((unsigned char*)data)[offset]);
-				printf("%s  ", hex);
+				printf("%2X  ", ((unsigned char*)data)[offset]);
 				offset++;
 			}
 			else {

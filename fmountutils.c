@@ -74,5 +74,5 @@ int fumount(struct FlopData *flopdata) {
 
 // Checks if an image has been mounted into the given FlopData
 int has_mounted_image(struct FlopData *flopdata) {
-	return (0 < flopdata->rawDataLen || flopdata->rawData == NULL);
+	return (0 < flopdata->rawDataLen && flopdata->rawData != NULL);
 }

@@ -1,23 +1,15 @@
-#include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
 
 #include "showfat.h"
 #include "flop.h"
 #include "fmountutils.h"
 #include "structure.h"
 
-int fd;
 
 int showfat(struct FlopData *flopdata, int argc, char **argv) {
 	 
-	unsigned short bytesPerSector;
-	unsigned short numOfSectors;
 	unsigned short fatBytes;
 	unsigned short cluster;
 	char *fatBuffer;
@@ -32,53 +24,16 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 		return 1;
 	}
 
-	if ((fd = open("imagefile.img", O_RDONLY)) < 0) {
-		fprintf(stdout, "ERROR mounting floppy\n");
-		return 1;
-	}
-
-	unsigned short low, high;
-	char buf[32];
-	size_t numOfBytes;
-	ssize_t bytesRead;
-	numOfBytes = sizeof(buf);
 	off_t offset;
 
-	offset = lseek(fd, SEEK_SET, SEEK_SET);
-	if (offset == -1) {
-		fprintf(stdout, "Issue reading beginning of floppy.");
+	fatBytes = flopdata->sectorSize * flopdata->sectorsPerFat;
+
+	offset = (flopdata->nReservedSectors * flopdata->sectorSize);
+	if(flopdata->rawDataLen < (offset + fatBytes)) {
+		fprintf(stderr, "Error. Missing FAT data.\n");
 		return 1;
 	}
-
-	bytesRead = read(fd, buf, numOfBytes);
-	if (bytesRead != numOfBytes) {
-		fprintf(stdout, "Issue reading the floppy.");
-		return 1;
-	}
-
-
-	low = ((unsigned short) buf[22]) & 0xff;
-	high = ((unsigned short) buf[23]) & 0xff;
-	numOfSectors = low | (high << 8);
-
-	low = ((unsigned short) buf[11]) & 0xff;
-	high = ((unsigned short) buf[12]) & 0xff;
-	bytesPerSector = low | (high << 8);
-
-
-	fatBytes = bytesPerSector * numOfSectors;
-
-	fatBuffer = (char *) malloc(fatBytes);
-	offset = lseek(fd, bytesPerSector, 0);
-	if (offset != bytesPerSector) {
-		fprintf(stdout, "Issue setting the cursor");
-		return 1;
-	}
-
-	if ((bytesRead = read(fd, fatBuffer, fatBytes)) != fatBytes) {
-		fprintf(stdout, "Issue reading the sector");
-		return 1;
-	}
+	fatBuffer = flopdata->rawData + offset;
 
 	// set up horizontal hex values
 	fprintf(stdout, "\n");
@@ -104,14 +59,14 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 		}
 		cluster = low | high;
 
-		if (cluster)
+		if (cluster) {
 			fprintf(stdout, "\t %x", cluster);
-		else
+		}
+		else {
 			fprintf(stdout, "\t FREE");
+		}
 	}
 
 	fprintf(stdout, "\n");
-	free(fatBuffer);
-	close(fd);
 	return 0;
 }
