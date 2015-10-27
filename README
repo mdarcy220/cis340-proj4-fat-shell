@@ -1,0 +1,26 @@
+# CIS 340 Project 3
+
+
+## Description 
+The program creates a shell to mount a floppy disc image and read the contents
+of said image.  The shell will include some core commands to read the contents of 
+the disc.  Help, fmount, fumount, structure, traverse, showsector,showfat, showfile
+and quit
+
+## Group Members
+
+Name		| CSUID	| Contribution
+______________  |_______|_____________
+Michael D'Arcy  |2553280|
+Joe Komperda	|2616266|
+Kyle Lutner	|2621469|
+
+
+## Compiling
+To compile the shell, simply use the makefile at the command promp in the directory
+where the files are located by typing 'make' at the command prompt.
+
+## sample output
+
+## known bugs
+
