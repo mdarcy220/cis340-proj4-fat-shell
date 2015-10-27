@@ -34,7 +34,7 @@ int command_fmount(struct FlopData *flopdata, int argc, char **argv) {
 	flopdata->rawDataLen = read(fd, flopdata->rawData, 2880*512);
 	close(fd);
 	
-	get_fs_structure(flopdata);
+	load_fs_structure(flopdata);
 	
 	return 0;
 }
@@ -74,5 +74,5 @@ int fumount(struct FlopData *flopdata) {
 
 // Checks if an image has been mounted into the given FlopData
 int has_mounted_image(struct FlopData *flopdata) {
-	return (0 < flopdata->rawDataLen);
+	return (0 < flopdata->rawDataLen || flopdata->rawData == NULL);
 }

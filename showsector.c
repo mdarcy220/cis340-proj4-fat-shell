@@ -1,4 +1,5 @@
 #include "flop.h"
+#include "showsector.h"
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>

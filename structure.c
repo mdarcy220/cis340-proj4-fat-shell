@@ -18,7 +18,7 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 		return 1;
 	}
 	
-	get_fs_structure(flopdata);
+	load_fs_structure(flopdata);
 	
 	
 	printf("number of FAT:                  %4d\n", flopdata->nFatTables);
@@ -46,8 +46,28 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 }
 
 
-// Loads information about the structure of the given FlopData image filesystem into the given FlopData
+// Loads information about the structure of the given FlopData image filesystem into the given FlopData. This method is deprecated. Please use load_fs_data instead.
 int get_fs_structure(struct FlopData *flopdata) {
+	
+	flopdata->sectorSize = concat_uint8_uint16(flopdata->rawData[12], flopdata->rawData[11]);
+	flopdata->sectorsPerCluster = (int) flopdata->rawData[13];
+	flopdata->nReservedSectors = concat_uint8_uint16(flopdata->rawData[15], flopdata->rawData[14]);
+	flopdata->nFatTables = (int) flopdata->rawData[16];
+	flopdata->nRootEntries = concat_uint8_uint16(flopdata->rawData[18], flopdata->rawData[17]);
+	flopdata->sectorsPerFat = (int) flopdata->rawData[22];
+	
+	
+	return 0;
+}
+
+
+// Loads information about the structure of the given FlopData image filesystem into the given FlopData
+int load_fs_structure(struct FlopData *flopdata) {
+	
+	if(!has_mounted_image(flopdata)) {
+		fprintf(stderr, "Error. No image mounted.");
+		return 1;
+	}
 	
 	flopdata->sectorSize = concat_uint8_uint16(flopdata->rawData[12], flopdata->rawData[11]);
 	flopdata->sectorsPerCluster = (int) flopdata->rawData[13];

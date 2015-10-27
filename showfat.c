@@ -7,6 +7,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "showfat.h"
+#include "flop.h"
+#include "fmountutils.h"
+#include "structure.h"
+
 int fd;
 
 int showfat(struct FlopData *flopdata, int argc, char **argv) {
@@ -16,10 +21,20 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 	unsigned short fatBytes;
 	unsigned short cluster;
 	char *fatBuffer;
+	
+	if(!has_mounted_image(flopdata)) {
+		fprintf(stderr, "Error. No image mounted.\n");
+		return 1;
+	}
+	
+	if(load_fs_structure(flopdata) != 0) {
+		fprintf(stderr, "Error. Filesystem structure data could not be loaded.\n");
+		return 1;
+	}
 
 	if ((fd = open("imagefile.img", O_RDONLY)) < 0) {
 		fprintf(stdout, "ERROR mounting floppy\n");
-		exit(1);
+		return 1;
 	}
 
 	unsigned short low, high;
@@ -32,13 +47,13 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 	offset = lseek(fd, SEEK_SET, SEEK_SET);
 	if (offset == -1) {
 		fprintf(stdout, "Issue reading beginning of floppy.");
-		exit(1);
+		return 1;
 	}
 
 	bytesRead = read(fd, buf, numOfBytes);
 	if (bytesRead != numOfBytes) {
 		fprintf(stdout, "Issue reading the floppy.");
-		exit(1);
+		return 1;
 	}
 
 
@@ -57,12 +72,12 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 	offset = lseek(fd, bytesPerSector, 0);
 	if (offset != bytesPerSector) {
 		fprintf(stdout, "Issue setting the cursor");
-		exit(1);
+		return 1;
 	}
 
 	if ((bytesRead = read(fd, fatBuffer, fatBytes)) != fatBytes) {
 		fprintf(stdout, "Issue reading the sector");
-		exit(1);
+		return 1;
 	}
 
 	// set up horizontal hex values
@@ -81,11 +96,11 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 		}
 
 		if (temp%2) {
-				low = (((unsigned short) fatBuffer[(3*temp - 1)/2])>>4) & 0x000f;
-				high = (((unsigned short) fatBuffer[(3*temp + 1)/2])<<4) & 0x0ff0;
+			low = (((unsigned short) fatBuffer[(3*temp - 1)/2])>>4) & 0x000f;
+			high = (((unsigned short) fatBuffer[(3*temp + 1)/2])<<4) & 0x0ff0;
 		}else {
-				low = ((unsigned short) fatBuffer[3*temp/2]) & 0x00ff;
-				high = (((unsigned short) fatBuffer[(3*temp + 2)/2])<<8) & 0x0f00;
+			low = ((unsigned short) fatBuffer[3*temp/2]) & 0x00ff;
+			high = (((unsigned short) fatBuffer[(3*temp + 2)/2])<<8) & 0x0f00;
 		}
 		cluster = low | high;
 

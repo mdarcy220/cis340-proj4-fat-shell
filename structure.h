@@ -5,5 +5,6 @@
 
 int print_fs_structure(struct FlopData *, int, char **);
 int get_fs_structure(struct FlopData*);
+int load_fs_structure(struct FlopData*);
 
 #endif
