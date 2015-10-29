@@ -5,7 +5,8 @@
 
 int traverse(struct FlopData *, int, char **);
 
-struct dir_ent{
-	*char filename;
-	
+struct dir_ent {
+	char *filename;
+};
+
 #endif

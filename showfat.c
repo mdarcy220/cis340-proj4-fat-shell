@@ -37,12 +37,14 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 
 	// set up horizontal hex values
 	fprintf(stdout, "\n");
-	for (int i=0;i<16;i++) {
+	int i;
+	for (i=0;i<16;i++) {
 		fprintf(stdout, "\t %x", i);
 	}
 
 	fprintf(stdout, "\n \t \t"); // first two entries are reserved
-	for (int x = 2; x < fatBytes*2/3; x++) {
+	int x;
+	for (x = 2; x < fatBytes*2/3; x++) {
 		unsigned short low, high;
 		unsigned short temp = (unsigned short) x;
 		// prints the vertical hex values
