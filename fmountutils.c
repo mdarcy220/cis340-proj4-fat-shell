@@ -65,7 +65,7 @@ int fumount(struct FlopData *flopdata) {
 	flopdata->sectorsPerFat = 0;
 	flopdata->sectorsPerCluster = 0;
 	flopdata->nRootEntries = -1;
-	flopdata->sectorSize = 0;
+	flopdata->bytesPerSector = 0;
 	flopdata->nReservedSectors = -1;
 	
 	return 0;

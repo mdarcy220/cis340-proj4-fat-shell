@@ -25,7 +25,7 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 	printf("number of sectors used by FAT:  %4d\n", flopdata->sectorsPerFat);
 	printf("number of sectors per cluster:  %4d\n", flopdata->sectorsPerCluster);
 	printf("number of of ROOT entries:      %4d\n", flopdata->nRootEntries);
-	printf("number of bytes per sector:     %4d\n", flopdata->sectorSize);
+	printf("number of bytes per sector:     %4d\n", flopdata->bytesPerSector);
 	printf("---Sector #---     ---Sector Types---\n");
 	
 	if(flopdata->nReservedSectors == 1) {
@@ -40,7 +40,7 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 		printf("   %02d -- %02d              FAT%d        \n", flopdata->nReservedSectors+(fatNum-1)*flopdata->sectorsPerFat, flopdata->nReservedSectors+fatNum*flopdata->sectorsPerFat-1, fatNum);
 	}
 	
-	printf("   %02d -- %02d              ROOT DIRECTORY\n", flopdata->nReservedSectors+flopdata->nFatTables*flopdata->sectorsPerFat, flopdata->nReservedSectors+flopdata->nFatTables*flopdata->sectorsPerFat+(DIRECTORY_ENTRY_SIZE*flopdata->nRootEntries/flopdata->sectorSize)-1);
+	printf("   %02d -- %02d              ROOT DIRECTORY\n", calc_root_start_sector(flopdata), calc_root_start_sector(flopdata)+((DIRECTORY_ENTRY_SIZE*flopdata->nRootEntries)/flopdata->bytesPerSector)-1);
 	
 	return 0;
 }
@@ -49,7 +49,7 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 // Loads information about the structure of the given FlopData image filesystem into the given FlopData. This method is deprecated. Please use load_fs_data instead.
 int get_fs_structure(struct FlopData *flopdata) {
 	
-	flopdata->sectorSize = concat_uint8_uint16(flopdata->rawData[12], flopdata->rawData[11]);
+	flopdata->bytesPerSector = concat_uint8_uint16(flopdata->rawData[12], flopdata->rawData[11]);
 	flopdata->sectorsPerCluster = (int) flopdata->rawData[13];
 	flopdata->nReservedSectors = concat_uint8_uint16(flopdata->rawData[15], flopdata->rawData[14]);
 	flopdata->nFatTables = (int) flopdata->rawData[16];
@@ -69,7 +69,7 @@ int load_fs_structure(struct FlopData *flopdata) {
 		return 1;
 	}
 	
-	flopdata->sectorSize = concat_uint8_uint16(flopdata->rawData[12], flopdata->rawData[11]);
+	flopdata->bytesPerSector = concat_uint8_uint16(flopdata->rawData[12], flopdata->rawData[11]);
 	flopdata->sectorsPerCluster = (int) flopdata->rawData[13];
 	flopdata->nReservedSectors = concat_uint8_uint16(flopdata->rawData[15], flopdata->rawData[14]);
 	flopdata->nFatTables = (int) flopdata->rawData[16];
@@ -78,4 +78,11 @@ int load_fs_structure(struct FlopData *flopdata) {
 	
 	
 	return 0;
+}
+
+
+// Gets the number of sectors preceeding the root sector
+// Warning: This function assumes the filesystem structure has already been loaded into the FlopData
+int calc_root_start_sector(struct FlopData *flopdata) {
+	return flopdata->nReservedSectors + (flopdata->nFatTables) * (flopdata->sectorsPerFat);
 }

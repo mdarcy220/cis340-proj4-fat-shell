@@ -38,11 +38,11 @@ static const struct FlopCommand AVAILABLE_COMMANDS[] = {
 	{"fmount", command_fmount},
 	{"fumount", command_fumount},
 	{"help", command_help},
-	{"showfat", showfat},
-	{"showfile", showfile},
-	{"showsector", showsector},
+	{"showfat", command_showfat},
+	{"showfile", command_showfile},
+	{"showsector", command_showsector},
 	{"structure", print_fs_structure},
-	{"traverse", traverse},
+	{"traverse", command_traverse},
 	{0}
 };
 

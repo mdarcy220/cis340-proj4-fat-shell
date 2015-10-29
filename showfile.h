@@ -3,6 +3,6 @@
 
 #include "flop.h"
 
-int showfile(struct FlopData *, int, char **);
+int command_showfile(struct FlopData *, int, char **);
 
 #endif

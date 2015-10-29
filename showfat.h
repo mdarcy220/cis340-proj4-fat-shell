@@ -3,6 +3,6 @@
 
 #include "flop.h"
 
-int showfat(struct FlopData*, int, char**);
+int command_showfat(struct FlopData*, int, char**);
 
 #endif

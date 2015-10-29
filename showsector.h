@@ -3,6 +3,6 @@
 
 #include "flop.h"
 
-int showsector(struct FlopData *, int, char **);
+int command_showsector(struct FlopData *, int, char **);
 
 #endif

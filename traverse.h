@@ -2,11 +2,10 @@
 #define TRAVERSE_H_
 
 #include "flop.h"
+#include "fatroot.h"
 
-int traverse(struct FlopData *, int, char **);
+int command_traverse(struct FlopData *, int, char **);
 
-struct dir_ent {
-	char *filename;
-};
+
 
 #endif

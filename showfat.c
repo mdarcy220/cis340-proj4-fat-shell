@@ -8,7 +8,7 @@
 #include "structure.h"
 
 
-int showfat(struct FlopData *flopdata, int argc, char **argv) {
+int command_showfat(struct FlopData *flopdata, int argc, char **argv) {
 	 
 	unsigned short fatBytes;
 	unsigned short cluster;
@@ -26,9 +26,9 @@ int showfat(struct FlopData *flopdata, int argc, char **argv) {
 
 	off_t offset;
 
-	fatBytes = flopdata->sectorSize * flopdata->sectorsPerFat;
+	fatBytes = flopdata->bytesPerSector * flopdata->sectorsPerFat;
 
-	offset = (flopdata->nReservedSectors * flopdata->sectorSize);
+	offset = (flopdata->nReservedSectors * flopdata->bytesPerSector);
 	if(flopdata->rawDataLen < (offset + fatBytes)) {
 		fprintf(stderr, "Error. Missing FAT data.\n");
 		return 1;

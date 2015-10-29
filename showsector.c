@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 
-int showsector(struct FlopData *flopdata, int argc, char **argv) {
+int command_showsector(struct FlopData *flopdata, int argc, char **argv) {
 	
 	if(argc != 2) {
 		fprintf(stderr, "Error. Invalid number of arguments. Please specify a sector number.\n");
@@ -28,9 +28,9 @@ int showsector(struct FlopData *flopdata, int argc, char **argv) {
 		return 1;
 	}
 
-	off_t offset = flopdata->sectorSize * sec;
+	off_t offset = flopdata->bytesPerSector * sec;
 
-	print_hex_dump((flopdata->rawData + offset), flopdata->sectorSize);
+	print_hex_dump((flopdata->rawData + offset), flopdata->bytesPerSector);
 	fprintf(stdout, "\n");
 	return 0;
 }
