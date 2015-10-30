@@ -3,13 +3,20 @@
 
 
 struct rootent {
-	char *filename;
-	char *fileext;
+	char filename[9];
+	char fileext[4];
 	char attribute;
 	
 	int first_cluster;
 	int filesize;
 	
+	unsigned short time_hour;
+	unsigned short time_min;
+	unsigned short time_sec;
+	
+	unsigned short date_year;
+	unsigned short date_month;
+	unsigned short date_day;
 };
 
 
