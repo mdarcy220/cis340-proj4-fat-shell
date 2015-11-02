@@ -6,6 +6,7 @@
 #include "fmountutils.h"
 #include "structure.h"
 #include "fatroot.h"
+#include "showsector.h"
 
 int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 

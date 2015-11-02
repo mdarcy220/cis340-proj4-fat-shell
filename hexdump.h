@@ -4,5 +4,6 @@
 #include <stdlib.h>
 
 void print_hex_dump(const void*, size_t);
+void append_hex_dump(const void*, size_t, off_t);
 
 #endif
