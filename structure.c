@@ -40,7 +40,7 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 		printf("   %02d -- %02d              FAT%d        \n", flopdata->nReservedSectors+(fatNum-1)*flopdata->sectorsPerFat, flopdata->nReservedSectors+fatNum*flopdata->sectorsPerFat-1, fatNum);
 	}
 	
-	printf("   %02d -- %02d              ROOT DIRECTORY\n", calc_root_start_sector(flopdata), calc_root_start_sector(flopdata)+((DIRECTORY_ENTRY_SIZE*flopdata->nRootEntries)/flopdata->bytesPerSector)-1);
+	printf("   %02d -- %02d              ROOT DIRECTORY\n", calc_root_start_sector(flopdata), calc_data_start_sector(flopdata)-1);
 	
 	return 0;
 }
@@ -85,4 +85,11 @@ int load_fs_structure(struct FlopData *flopdata) {
 // Warning: This function assumes the filesystem structure has already been loaded into the FlopData
 int calc_root_start_sector(struct FlopData *flopdata) {
 	return flopdata->nReservedSectors + (flopdata->nFatTables) * (flopdata->sectorsPerFat);
+}
+
+
+// Gets the number of sectors preceeding the root sector
+// Warning: This function assumes the filesystem structure has already been loaded into the FlopData
+int calc_data_start_sector(struct FlopData *flopdata) {
+	return flopdata->nReservedSectors + (flopdata->nFatTables) * (flopdata->sectorsPerFat)+((DIRECTORY_ENTRY_SIZE*flopdata->nRootEntries)/flopdata->bytesPerSector);
 }

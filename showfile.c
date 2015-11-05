@@ -10,7 +10,12 @@
 #include "showsector.h"
 #include "concatbytes.h"
 
+
 static int print_file_dump(struct FlopData *, struct rootent *);
+static int enter_subdirectory(struct FlopData *, struct rootent *, char **);
+static size_t get_next_filename(char *, char *, size_t, off_t);
+static int cluster2sector(struct FlopData *, int);
+
 
 // Shows a hex dump of the file given in argv
 int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
@@ -33,28 +38,56 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 	}
 
 	int foundFile = 0;
-	char *filename = argv[1];
-	char *rootDir = flopdata->rawData + calc_root_start_sector(flopdata) * flopdata->bytesPerSector;
-	int i;
-	for (i = 0; i < flopdata->nRootEntries; i++) {
-		char *curEntData = rootDir + i * ROOT_ENTRY_SIZE;
-		struct rootent *curEnt = malloc(sizeof(*curEnt));
+	char *path = argv[1];
+	size_t pathLen = strlen(path);
+	char curFilename[13];
+	curFilename[0] = '\0';
+	if (path[0] != '/') {
+		fprintf(stderr, "Error. Only absolute paths are supported for the showfile command. Please "
+				"make sure you enter a path that starts with a '/')\n");
+		return 1;
+	}
+	off_t pathIndex = 1;
+	pathIndex += get_next_filename(curFilename, path, pathLen, pathIndex) + 1;
+
+	// Initially get directory entries from root directory
+	char **dirEntriesData = malloc(flopdata->nRootEntries * ROOT_ENTRY_SIZE * sizeof(char *));
+	dirEntriesData[0] = flopdata->rawData + calc_root_start_sector(flopdata) * flopdata->bytesPerSector;
+	int entryNum = 0;
+	struct rootent *curEnt = malloc(sizeof(*curEnt));
+	char *curEntData;
+	int entriesPerSector = flopdata->bytesPerSector / ROOT_ENTRY_SIZE;
+	while ((curEntData = dirEntriesData[entryNum * ROOT_ENTRY_SIZE % flopdata->bytesPerSector] +
+				(entryNum * ROOT_ENTRY_SIZE % flopdata->bytesPerSector))[0] != 0) {
 		parse_rootent(curEntData, curEnt);
 
 		char filename_full[13];
 		filename_full[0] = '\0';
 		strcpy(filename_full, curEnt->filename);
-		strcat(filename_full, ".");
-		strcat(filename_full, curEnt->fileext);
-
-		if (strcasecmp(filename_full, filename) == 0) {
-			print_file_dump(flopdata, curEnt);
-			foundFile = 1;
-			break;
+		if (strcmp(curEnt->fileext, "") != 0) {
+			strcat(filename_full, ".");
+			strcat(filename_full, curEnt->fileext);
 		}
 
-		free(curEnt);
+		if (strcasecmp(filename_full, curFilename) == 0) {
+			size_t tmp = 0;
+			if (0 < (tmp = get_next_filename(curFilename, path, pathLen, pathIndex))) {
+				pathIndex += tmp;
+				enter_subdirectory(flopdata, curEnt,
+						   dirEntriesData + (entryNum * ROOT_ENTRY_SIZE %
+								     flopdata->bytesPerSector));
+				entryNum = 0;
+				continue;
+			} else {
+				print_file_dump(flopdata, curEnt);
+				foundFile = 1;
+				break;
+			}
+		}
+
+		entryNum++;
 	}
+	free(curEnt);
 
 	if (!foundFile) {
 		fprintf(stderr, "File not found.\n");
@@ -63,35 +96,67 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 	return 0;
 }
 
+
 // Prints a file starting at the given cluster as a hex dump
 static int print_file_dump(struct FlopData *flopdata, struct rootent *fileEnt) {
-	int *clusters = malloc(5 * sizeof(int));
-	int nClusters = 0;
+	int *sectors = malloc(flopdata->sectorsPerCluster * 5 * sizeof(int));
+	int nSectors = 0;
 	char *fatData = flopdata->rawData + (flopdata->nReservedSectors * flopdata->bytesPerSector);
-
-	int data_clusters_offset =
-	    calc_root_start_sector(flopdata) + ((32 * flopdata->nRootEntries) / flopdata->bytesPerSector) - 2;
 
 	unsigned int nextCluster = fileEnt->first_cluster;
 	while (nextCluster < 0xFF8) {
-		if (nClusters % 5 == 0 && nClusters != 0) {
-			clusters = realloc(clusters, (nClusters + 5) * sizeof(int));
+		if (nSectors % (flopdata->sectorsPerCluster * 5) == 0 && nSectors != 0) {
+			sectors = realloc(sectors, (flopdata->sectorsPerCluster * 5 + 5) * sizeof(int));
 		}
-		clusters[nClusters++] = data_clusters_offset + nextCluster;
+		int i = 0;
+		for (i = 0; i < flopdata->sectorsPerCluster; i++) {
+			sectors[nSectors++] = cluster2sector(flopdata, nextCluster) + i;
+		}
+
 
 		char *entry = fatData + ((nextCluster * 12) / 8);
-		printf("%d : %lu\n", nextCluster, data_clusters_offset);
 		if (nextCluster % 2 == 0) {
 			nextCluster = concat_uint8_uint16(entry[1] & 0x0F, entry[0]);
 		} else {
 			nextCluster = concat_uint8_uint16(entry[1], entry[0] & 0xF0);
 		}
-		sleep(1);
 	}
 
-	show_sectors(flopdata, clusters, nClusters);
+	show_sectors(flopdata, sectors, nSectors);
 
-	free(clusters);
+	free(sectors);
 
 	return 0;
+}
+
+
+// Set the given data pointer to point to the directory data given by the rootent
+static int enter_subdirectory(struct FlopData *flopdata, struct rootent *dirEntry, char **dataPointer) {
+	*dataPointer = flopdata->rawData +
+			cluster2sector(flopdata, dirEntry->first_cluster) * flopdata->bytesPerSector;
+	return 0;
+}
+
+
+// Gets the substring of path starting at the given index and ending at the next '/', stores it into the
+// given buffer and returns the number of characters stored in buf (excluding null terminator, -1 on error).
+// The trailing '/' is not
+// stored.
+static size_t get_next_filename(char *buf, char *path, size_t pathLength, off_t pathIndex) {
+	off_t tmpIndex = pathIndex;
+	size_t nRead = 0;
+	while (tmpIndex < pathLength && path[tmpIndex] != '/') {
+		buf[nRead++] = path[tmpIndex++];
+	}
+	if (buf[nRead - 1] != '\0') {
+		buf[nRead] = '\0';
+	}
+
+	return nRead;
+}
+
+
+// Converts the given cluster number to the corresponding sector number, and returns the sector number
+static int cluster2sector(struct FlopData *flopdata, int clusterNum) {
+	return clusterNum * flopdata->sectorsPerCluster + calc_data_start_sector(flopdata) - 2;
 }
