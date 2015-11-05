@@ -11,7 +11,8 @@
 #include "concatbytes.h"
 
 
-static int print_file_dump(struct FlopData *, struct rootent *);
+static void load_directory_sectors(struct FlopData*, struct rootent*, char***, int*);
+static int get_file_sectors(struct FlopData *, struct rootent *, int**);
 static int enter_subdirectory(struct FlopData *, struct rootent *, char **);
 static size_t get_next_filename(char *, char *, size_t, off_t);
 static int cluster2sector(struct FlopData *, int);
@@ -51,14 +52,20 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 	pathIndex += get_next_filename(curFilename, path, pathLen, pathIndex) + 1;
 
 	// Initially get directory entries from root directory
-	char **dirEntriesData = malloc(flopdata->nRootEntries * ROOT_ENTRY_SIZE * sizeof(char *));
-	dirEntriesData[0] = flopdata->rawData + calc_root_start_sector(flopdata) * flopdata->bytesPerSector;
+	size_t dirEntriesDataCap = flopdata->nRootEntries * ROOT_ENTRY_SIZE/flopdata->bytesPerSector;
+	char **dirEntriesData = malloc(dirEntriesDataCap * sizeof(char *));
+	int i = 0;
+	for(i = 0; i < dirEntriesDataCap; i++) {
+		dirEntriesData[i] = flopdata->rawData + (calc_root_start_sector(flopdata) + i) * flopdata->bytesPerSector;
+	}
+	
 	int entryNum = 0;
 	struct rootent *curEnt = malloc(sizeof(*curEnt));
 	char *curEntData;
 	int entriesPerSector = flopdata->bytesPerSector / ROOT_ENTRY_SIZE;
-	while ((curEntData = dirEntriesData[entryNum * ROOT_ENTRY_SIZE % flopdata->bytesPerSector] +
-				(entryNum * ROOT_ENTRY_SIZE % flopdata->bytesPerSector))[0] != 0) {
+	
+	int sectorNum = 0;
+	while ((curEntData = dirEntriesData[sectorNum] + (entryNum * ROOT_ENTRY_SIZE))[0] != 0) {
 		parse_rootent(curEntData, curEnt);
 
 		char filename_full[13];
@@ -68,26 +75,33 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 			strcat(filename_full, ".");
 			strcat(filename_full, curEnt->fileext);
 		}
-
+		printf("%s, %s\n", filename_full, curFilename);
 		if (strcasecmp(filename_full, curFilename) == 0) {
 			size_t tmp = 0;
 			if (0 < (tmp = get_next_filename(curFilename, path, pathLen, pathIndex))) {
-				pathIndex += tmp;
-				enter_subdirectory(flopdata, curEnt,
-						   dirEntriesData + (entryNum * ROOT_ENTRY_SIZE %
-								     flopdata->bytesPerSector));
+				pathIndex += tmp+1;
+				load_directory_sectors(flopdata, curEnt, &dirEntriesData, &dirEntriesDataCap);
 				entryNum = 0;
+				sectorNum = 0;
 				continue;
 			} else {
-				print_file_dump(flopdata, curEnt);
+				int *sectors = 0;
+				int nSectors = get_file_sectors(flopdata, curEnt, &sectors);
+				show_sectors(flopdata, sectors, nSectors);
+				free(sectors);
 				foundFile = 1;
 				break;
 			}
 		}
 
 		entryNum++;
+		if(entryNum == entriesPerSector) {
+			entryNum = 0;
+			sectorNum++;
+		}
 	}
 	free(curEnt);
+	free(dirEntriesData);
 
 	if (!foundFile) {
 		fprintf(stderr, "File not found.\n");
@@ -97,20 +111,35 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 }
 
 
+static void load_directory_sectors(struct FlopData *flopdata, struct rootent *curEnt, char ***dirEntriesData, int *dirEntriesDataCap) {
+	int *sectors = 0;
+	int nSectors = get_file_sectors(flopdata, curEnt, &sectors);
+	int i = 0;
+	for(i = 0; i < nSectors; ++i) {
+		if(i == *dirEntriesDataCap) {
+			*dirEntriesData = realloc(*dirEntriesData, dirEntriesDataCap+=sizeof(char*));
+		}
+		(*dirEntriesData)[i] = flopdata->rawData + sectors[i]*flopdata->bytesPerSector;
+	}
+	free(sectors);
+}
+
+
 // Prints a file starting at the given cluster as a hex dump
-static int print_file_dump(struct FlopData *flopdata, struct rootent *fileEnt) {
-	int *sectors = malloc(flopdata->sectorsPerCluster * 5 * sizeof(int));
+static int get_file_sectors(struct FlopData *flopdata, struct rootent *fileEnt, int **sectors) {
+	free(*sectors);
+	*sectors = malloc(flopdata->sectorsPerCluster * 5 * sizeof(int));
 	int nSectors = 0;
 	char *fatData = flopdata->rawData + (flopdata->nReservedSectors * flopdata->bytesPerSector);
 
 	unsigned int nextCluster = fileEnt->first_cluster;
 	while (nextCluster < 0xFF8) {
 		if (nSectors % (flopdata->sectorsPerCluster * 5) == 0 && nSectors != 0) {
-			sectors = realloc(sectors, (flopdata->sectorsPerCluster * 5 + 5) * sizeof(int));
+			*sectors = realloc(*sectors, (flopdata->sectorsPerCluster * 5 + 5) * sizeof(int));
 		}
 		int i = 0;
 		for (i = 0; i < flopdata->sectorsPerCluster; i++) {
-			sectors[nSectors++] = cluster2sector(flopdata, nextCluster) + i;
+			(*sectors)[nSectors++] = cluster2sector(flopdata, nextCluster) + i;
 		}
 
 
@@ -122,11 +151,11 @@ static int print_file_dump(struct FlopData *flopdata, struct rootent *fileEnt) {
 		}
 	}
 
-	show_sectors(flopdata, sectors, nSectors);
+	//show_sectors(flopdata, sectors, nSectors);
 
-	free(sectors);
+	//free(sectors);
 
-	return 0;
+	return nSectors;
 }
 
 
