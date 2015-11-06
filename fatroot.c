@@ -10,7 +10,7 @@ static int trim_trailing_spaces(char*);
 
 // Checks if the given root entry is a directory
 int is_dir(struct rootent *entry) {
-	return (entry->attribute & 0x4);
+	return (entry->attribute & 0x10); // stored in bit 4
 }
 
 
