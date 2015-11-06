@@ -68,11 +68,6 @@ static void flopshell_run() {
 		// Remove the newline character at the end of the buffer
 		userinput[inputlen-1] = '\0';
 		
-		if(strcmp(userinput, "quit") == 0 || strcmp(userinput, "q") == 0) {
-			free(userinput);
-			break;
-		}
-		
 		// Parse the input into a list of command arguments
 		size_t commandArgsCap = 1;
 		StringArray commandArgs  = malloc(commandArgsCap*sizeof(char*));
@@ -80,6 +75,12 @@ static void flopshell_run() {
 
 		if(nCommandArgs == 0) {
 			continue;
+		}
+		
+		
+		if(strcmp(commandArgs[0], "quit") == 0 || strcmp(commandArgs[0], "q") == 0) {
+			free(userinput);
+			break;
 		}
 
 		// Find the shell command in the list of available commands
@@ -132,7 +133,7 @@ static size_t parse_command_args(char* commandStr, StringArray *argsArr, size_t 
 			add_str_to_arr(curArg, argsArr, nArgs, argsArrCapacity);
 			nArgs++;
 			curArgLen = 0;
-		} else {
+		} else if (commandStr[index] != delim) {
 			curArg[curArgLen++] = commandStr[index];
 		}
 	}
