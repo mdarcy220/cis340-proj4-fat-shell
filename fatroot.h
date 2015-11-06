@@ -21,6 +21,7 @@ struct rootent {
 
 
 int is_dir(struct rootent *);
+int is_vfat_entry(struct rootent *);
 int parse_rootent(char *, struct rootent *);
 int get_file_sectors(struct FlopData *, struct rootent *, int **);
 

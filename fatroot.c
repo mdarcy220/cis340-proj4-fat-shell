@@ -16,6 +16,12 @@ int is_dir(struct rootent *entry) {
 }
 
 
+// Checks if the given directory entry is a special VFAT entry (marked by attribute byte 0xf)
+int is_vfat_entry(struct rootent *entry) {
+	return (entry->attribute == 0x0F);
+}
+
+
 // Parses the given data (should be 32 bytes) into a root entry
 int parse_rootent(char *data, struct rootent *entry) {
 	strncpy(entry->filename, data, 8);
