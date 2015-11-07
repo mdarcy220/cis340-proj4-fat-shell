@@ -99,3 +99,4 @@ static void load_directory_sectors(struct FlopData *flopdata, struct rootent *cu
 	}
 	free(sectors);
 }
+

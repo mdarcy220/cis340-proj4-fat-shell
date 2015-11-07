@@ -133,3 +133,4 @@ int get_file_sectors(struct FlopData *flopdata, struct rootent *fileEnt, int **s
 static int cluster2sector(struct FlopData *flopdata, int clusterNum) {
 	return clusterNum * flopdata->sectorsPerCluster + calc_data_start_sector(flopdata) - 2;
 }
+

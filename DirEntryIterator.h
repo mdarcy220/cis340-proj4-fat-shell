@@ -21,3 +21,4 @@ struct rootent *DirEntryIterator_next(struct DirEntryIterator *, struct rootent 
 int DirEntryIterator_hasNext(struct DirEntryIterator *);
 
 #endif
+
