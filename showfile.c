@@ -100,6 +100,10 @@ static void print_file_dump(struct FlopData *flopdata, struct rootent *ent) {
 
 // Checks if the given filename matches (ignoring case) the one found in the given struct rootent
 static int filename_matches(struct rootent *ent, char *filename) {
+	if(is_deleted(ent) || is_vfat_entry(ent)) {
+		return 0;
+	}
+	
 	char filename_full[13];
 	filename_full[0] = '\0';
 	strcpy(filename_full, ent->filename);
