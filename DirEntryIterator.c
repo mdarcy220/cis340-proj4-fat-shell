@@ -73,6 +73,15 @@ struct rootent *DirEntryIterator_next(struct DirEntryIterator *dirIter, struct r
 }
 
 
+// Checks if there are entries left in the directory
+int DirEntryIterator_hasNext(struct DirEntryIterator *dirIter) {
+	char *entData = dirIter->dirEntSectors[dirIter->sectorNum] +
+			(dirIter->entryNum * dirIter->DIR_ENTRY_SIZE);
+
+	return (entData[0] != 0);
+}
+
+
 /*
  * This function finds all the sectors associated with the given struct rootent and stores them in the array
  * of char pointers that is pointed by dirEntSectors.

@@ -18,5 +18,6 @@ struct DirEntryIterator {
 struct DirEntryIterator *new_DirEntryIterator(struct FlopData *, struct rootent *);
 void destroy_DirEntryIterator(struct DirEntryIterator *);
 struct rootent *DirEntryIterator_next(struct DirEntryIterator *, struct rootent *);
+int DirEntryIterator_hasNext(struct DirEntryIterator *);
 
 #endif

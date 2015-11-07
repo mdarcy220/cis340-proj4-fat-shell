@@ -39,40 +39,49 @@ int command_traverse(struct FlopData *flopdata, int argc, char **argv) {
 		       "        *****************************\n\n");
 	}
 
+	// Create a stack to hold iterators for each subdirectory
 	struct DirEntryIterator **dirIterStack = malloc(sizeof(struct DirEntryIterator *));
 	int stackTop = -1;
 
+	// We're traversing the root directory first, so path="/"
 	size_t pathLen = 256;
 	char *path = malloc(pathLen * sizeof(char));
 	path[0] = '/';
 	path[1] = '\0';
 
+	// Put an iterator for the root directory onto the stack
 	dirIterStack[++stackTop] = new_DirEntryIterator(flopdata, NULL);
 	struct rootent *curEnt = malloc(sizeof(*curEnt));
 
-	DirEntryIterator_next(dirIterStack[stackTop], curEnt);
-	while (0 <= stackTop && curEnt != NULL) {
+	// Make sure there's at least one entry
+	if(!DirEntryIterator_hasNext(dirIterStack[stackTop])) {
+		destroy_DirEntryIterator(dirIterStack[stackTop--]);
+	}
 
+	// Loop until we reach the end of all subdirectories
+	while (0 <= stackTop) {
+		// Advance to the next entry
+		DirEntryIterator_next(dirIterStack[stackTop], curEnt);
+		
 		// Print the entry
 		if (!is_vfat_entry(curEnt) && !is_deleted(curEnt)) {
 			print_entry(curEnt, path, printType);
 		}
 
 		// If this is a directory, traverse it
-		if (is_dir(curEnt) && strcmp(curEnt->filename, ".") != 0 &&
-		    strcmp(curEnt->filename, "..") != 0) {
-			dirIterStack = realloc(dirIterStack,
-					       (stackTop + 2) * sizeof(struct DirEntryIterator *));
+		if (is_dir(curEnt) && strcmp(curEnt->filename, ".") != 0 && strcmp(curEnt->filename, "..") != 0) {
+			// Expand the iterator stack and put a new iterator on top of it
+			dirIterStack = realloc(dirIterStack, (stackTop + 2) * sizeof(struct DirEntryIterator *));
 			dirIterStack[++stackTop] = new_DirEntryIterator(flopdata, curEnt);
 
+			// Add the directory name to the end of the path
 			char filename_full[13];
 			get_full_filename(curEnt, filename_full);
 			path_append(&path, filename_full, &pathLen);
 		}
 
-
-		// If we're at the last entry in a given directory, go back up until there are more entries
-		while (0 <= stackTop && DirEntryIterator_next(dirIterStack[stackTop], curEnt) == NULL) {
+		// If we reached the end of the directory, go back up until there are more entries
+		while (0 <= stackTop && !DirEntryIterator_hasNext(dirIterStack[stackTop])) {
 			destroy_DirEntryIterator(dirIterStack[stackTop--]);
 			path_remove_last(path);
 		}
@@ -113,7 +122,7 @@ static void path_remove_last(char *path) {
 static void print_entry(struct rootent *ent, char *path, int printType) {
 	char filename_full[13];
 	get_full_filename(ent, filename_full);
-	
+
 
 	if (printType == PRINT_NORMAL) {
 		char *directoryStr = is_dir(ent) ? "<DIR>" : "     ";
@@ -132,17 +141,17 @@ static void print_entry(struct rootent *ent, char *path, int printType) {
 		if (is_readonly(ent)) {
 			attrStr[4] = 'R';
 		}
-		
+
 		char directoryStr[11];
-		if(is_dir(ent)) {
+		if (is_dir(ent)) {
 			sprintf(directoryStr, "<DIR>     ");
 		} else {
 			sprintf(directoryStr, "      %4d", ent->filesize);
 		}
 
-		printf("%s     %02d/%02d/%04d %02d:%02d:%02d        %s     %s%s\n", attrStr,
-		       ent->date_month, ent->date_day, ent->date_year, ent->time_hour, ent->time_min,
-		       ent->time_sec, directoryStr, path, filename_full);
+		printf("%s     %02d/%02d/%04d %02d:%02d:%02d        %s     %s%s\n", attrStr, ent->date_month,
+		       ent->date_day, ent->date_year, ent->time_hour, ent->time_min, ent->time_sec,
+		       directoryStr, path, filename_full);
 	}
 }
 
