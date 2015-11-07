@@ -21,8 +21,17 @@ struct rootent {
 
 
 int is_dir(struct rootent *);
+int is_archive(struct rootent*);
+int is_hidden(struct rootent*);
+int is_system(struct rootent*);
+int is_readonly(struct rootent*);
+
+int is_vfat_entry(struct rootent *);
+int is_deleted(struct rootent*);
+
 int parse_rootent(char *, struct rootent *);
 int get_file_sectors(struct FlopData *, struct rootent *, int **);
 
 
 #endif
+
