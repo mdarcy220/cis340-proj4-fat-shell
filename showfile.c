@@ -13,6 +13,7 @@
 
 
 static void print_file_dump(struct FlopData *, struct rootent *);
+static void print_hex_dump_nolabels(const void *, size_t);
 static int filename_matches(struct rootent *, char *);
 static size_t get_next_filename(char *, char *, off_t);
 
@@ -56,26 +57,27 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 	struct DirEntryIterator *dirIter = new_DirEntryIterator(flopdata, NULL);
 	struct rootent *curEnt = malloc(sizeof(*curEnt));
 	while (DirEntryIterator_next(dirIter, curEnt) != NULL) {
-		if (!filename_matches(curEnt, curFilename)) {
+		// Check if filenames match, and if not, go back to the top of the loop
+		if (is_vfat_entry(curEnt) || is_deleted(curEnt) || !filename_matches(curEnt, curFilename)) {
 			continue;
 		}
-
-		// Filename matched
 
 		// Check if this was the last piece of the path, and if so print the file
 		if (path[pathIndex - 1] == '\0' || path[pathIndex] == 0) {
 			print_file_dump(flopdata, curEnt);
 			foundFile = 1;
 			break;
-		} else {
+		} else if (is_dir(curEnt)) {
 			// Enter the subdirectory
 			pathIndex += get_next_filename(curFilename, path, pathIndex) + 1;
 			destroy_DirEntryIterator(dirIter);
 			dirIter = new_DirEntryIterator(flopdata, curEnt);
 			if (dirIter == NULL) {
-				printf("Oh no! : %s\n", curEnt->filename);
+				fprintf(stderr, "An unexpected error occurred.\n");
 			}
 			continue;
+		} else {
+			fprintf(stderr, "Invalid path.\n");
 		}
 	}
 	free(curEnt);
@@ -93,13 +95,48 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 static void print_file_dump(struct FlopData *flopdata, struct rootent *ent) {
 	int *sectors = 0;
 	int nSectors = get_file_sectors(flopdata, ent, &sectors);
-	show_sectors(flopdata, sectors, nSectors);
+
+	if (nSectors == 0) {
+		printf("The file is blank. There is no data to display.\n");
+		return;
+	}
+
+	printf("\n");
+	int i;
+	for (i = 0; i < nSectors; ++i) {
+		off_t offset = flopdata->bytesPerSector * sectors[i];
+		print_hex_dump_nolabels((flopdata->rawData + offset), flopdata->bytesPerSector);
+	}
+	printf("\n");
+
 	free(sectors);
+}
+
+
+// Print a hex dump without any headers or labels
+static void print_hex_dump_nolabels(const void *data, size_t datalen) {
+	off_t offset = 0;
+	while (offset < datalen) {
+		int i;
+		for (i = 0; i < 16; i++) {
+			if (offset < datalen) {
+				printf("%5x", ((unsigned char *)data)[offset]);
+				offset++;
+			} else {
+				printf("    ");
+			}
+		}
+		printf("\n");
+	}
 }
 
 
 // Checks if the given filename matches (ignoring case) the one found in the given struct rootent
 static int filename_matches(struct rootent *ent, char *filename) {
+	if (is_deleted(ent) || is_vfat_entry(ent)) {
+		return 0;
+	}
+
 	char filename_full[13];
 	filename_full[0] = '\0';
 	strcpy(filename_full, ent->filename);

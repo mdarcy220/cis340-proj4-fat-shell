@@ -21,15 +21,14 @@ void append_hex_dump(const void *data, size_t datalen, off_t firstrownum) {
 	int leftPadding = calc_left_padding(datalen);
 
 	off_t offset = 0;
-	while(offset < datalen) {
-		printf("%*X  ", leftPadding, (unsigned long)(offset + firstrownum));
+	while (offset < datalen) {
+		printf("%*X  ", leftPadding, (unsigned int)(offset + firstrownum));
 		int i;
-		for(i = 0; i < 16; i++) {
-			if(offset < datalen) {
-				printf("%2X  ", ((unsigned char*)data)[offset]);
+		for (i = 0; i < 16; i++) {
+			if (offset < datalen) {
+				printf("%2X  ", ((unsigned char *)data)[offset]);
 				offset++;
-			}
-			else {
+			} else {
 				printf("    ");
 			}
 		}
@@ -42,9 +41,9 @@ void append_hex_dump(const void *data, size_t datalen, off_t firstrownum) {
 static int calc_left_padding(size_t datalen) {
 	int leftPadding = 1;
 	size_t datalentmp = datalen;
-	for(; 0 < datalentmp; datalentmp /= 16) {
+	for (; 0 < datalentmp; datalentmp /= 16) {
 		leftPadding++;
 	}
-	
+
 	return leftPadding;
 }
