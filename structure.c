@@ -21,26 +21,26 @@ int print_fs_structure(struct FlopData *flopdata, int argc, char **argv) {
 	load_fs_structure(flopdata);
 	
 	
-	printf("number of FAT:                  %4d\n", flopdata->nFatTables);
-	printf("number of sectors used by FAT:  %4d\n", flopdata->sectorsPerFat);
-	printf("number of sectors per cluster:  %4d\n", flopdata->sectorsPerCluster);
-	printf("number of of ROOT entries:      %4d\n", flopdata->nRootEntries);
-	printf("number of bytes per sector:     %4d\n", flopdata->bytesPerSector);
-	printf("---Sector #---     ---Sector Types---\n");
+	printf("                number of FAT:                  %4d\n", flopdata->nFatTables);
+	printf("                number of sectors used by FAT:  %4d\n", flopdata->sectorsPerFat);
+	printf("                number of sectors per cluster:  %4d\n", flopdata->sectorsPerCluster);
+	printf("                number of of ROOT entries:      %4d\n", flopdata->nRootEntries);
+	printf("                number of bytes per sector:     %4d\n", flopdata->bytesPerSector);
+	printf("                ---Sector #---     ---Sector Types---\n");
 	
 	if(flopdata->nReservedSectors == 1) {
-		printf("      0                  BOOT        \n");
+		printf("                      0                  BOOT        \n");
 	} else {
-		printf("    %02d -- %02d             BOOT        \n", 0, flopdata->nReservedSectors-1);
+		printf("                    %02d -- %02d             BOOT        \n", 0, flopdata->nReservedSectors-1);
 	}
 	
 	
 	int fatNum;
 	for(fatNum = 1; fatNum <= flopdata->nFatTables; fatNum++) {
-		printf("   %02d -- %02d              FAT%d        \n", flopdata->nReservedSectors+(fatNum-1)*flopdata->sectorsPerFat, flopdata->nReservedSectors+fatNum*flopdata->sectorsPerFat-1, fatNum);
+		printf("                   %02d -- %02d              FAT%d        \n", flopdata->nReservedSectors+(fatNum-1)*flopdata->sectorsPerFat, flopdata->nReservedSectors+fatNum*flopdata->sectorsPerFat-1, fatNum);
 	}
 	
-	printf("   %02d -- %02d              ROOT DIRECTORY\n", calc_root_start_sector(flopdata), calc_data_start_sector(flopdata)-1);
+	printf("                   %02d -- %02d              ROOT DIRECTORY\n", calc_root_start_sector(flopdata), calc_data_start_sector(flopdata)-1);
 	
 	return 0;
 }
