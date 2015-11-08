@@ -58,7 +58,7 @@ int command_showfile(struct FlopData *flopdata, int argc, char **argv) {
 	struct rootent *curEnt = malloc(sizeof(*curEnt));
 	while (DirEntryIterator_next(dirIter, curEnt) != NULL) {
 		// Check if filenames match, and if not, go back to the top of the loop
-		if (!filename_matches(curEnt, curFilename)) {
+		if (is_vfat_entry(curEnt) || is_deleted(curEnt) || !filename_matches(curEnt, curFilename)) {
 			continue;
 		}
 
