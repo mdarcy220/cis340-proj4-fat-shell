@@ -41,15 +41,11 @@ int is_readonly(struct rootent *entry) {
 
 
 // Checks if the given directory entry is a special VFAT entry (marked by attribute byte 0xf)
-int is_vfat_entry(struct rootent *entry) { 
-	return (entry->attribute == 0x0F); 
-}
+int is_vfat_entry(struct rootent *entry) { return (entry->attribute == 0x0F); }
 
 
 // Checks if the given directory entry is for a deleted file
-int is_deleted(struct rootent *entry) { 
-	return (unsigned char)(entry->filename[0]) == (unsigned char)0xE5; 
-}
+int is_deleted(struct rootent *entry) { return (unsigned char)(entry->filename[0]) == (unsigned char)0xE5; }
 
 
 // Parses the given data (should be 32 bytes) into a root entry
@@ -95,8 +91,12 @@ static int trim_trailing_spaces(char *str) {
 }
 
 
-// Prints a file starting at the given cluster as a hex dump
+// Finds all the sectors associated with a given file and stores them in the given array pointer
 int get_file_sectors(struct FlopData *flopdata, struct rootent *fileEnt, int **sectors) {
+	// There are no sectors if the file is blank
+	if (fileEnt->first_cluster == 0) {
+		return 0;
+	}
 	// We will allocate *sectors ourselves, so free if it was alloced before
 	free(*sectors);
 
@@ -133,4 +133,3 @@ int get_file_sectors(struct FlopData *flopdata, struct rootent *fileEnt, int **s
 static int cluster2sector(struct FlopData *flopdata, int clusterNum) {
 	return clusterNum * flopdata->sectorsPerCluster + calc_data_start_sector(flopdata) - 2;
 }
-

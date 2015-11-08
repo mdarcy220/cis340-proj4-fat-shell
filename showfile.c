@@ -96,6 +96,11 @@ static void print_file_dump(struct FlopData *flopdata, struct rootent *ent) {
 	int *sectors = 0;
 	int nSectors = get_file_sectors(flopdata, ent, &sectors);
 
+	if (nSectors == 0) {
+		printf("The file is blank. There is no data to display.\n");
+		return;
+	}
+
 	printf("\n");
 	int i;
 	for (i = 0; i < nSectors; ++i) {
