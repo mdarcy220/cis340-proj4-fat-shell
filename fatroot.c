@@ -16,6 +16,42 @@ int is_dir(struct rootent *entry) {
 }
 
 
+// Checks if the given root entry is an archive file
+int is_archive(struct rootent *entry) {
+	return (entry->attribute & 0x20); // stored in bit 5
+}
+
+
+// Checks if the given root entry is hidden
+int is_hidden(struct rootent *entry) {
+	return (entry->attribute & 0x02); // stored in bit 1
+}
+
+
+// Checks if the given root entry is a system file
+int is_system(struct rootent *entry) {
+	return (entry->attribute & 0x04); // stored in bit 2
+}
+
+
+// Checks if the given root entry is read-only
+int is_readonly(struct rootent *entry) {
+	return (entry->attribute & 0x01); // stored in bit 0
+}
+
+
+// Checks if the given directory entry is a special VFAT entry (marked by attribute byte 0xf)
+int is_vfat_entry(struct rootent *entry) { 
+	return (entry->attribute == 0x0F); 
+}
+
+
+// Checks if the given directory entry is for a deleted file
+int is_deleted(struct rootent *entry) { 
+	return (unsigned char)(entry->filename[0]) == (unsigned char)0xE5; 
+}
+
+
 // Parses the given data (should be 32 bytes) into a root entry
 int parse_rootent(char *data, struct rootent *entry) {
 	strncpy(entry->filename, data, 8);
@@ -38,7 +74,7 @@ int parse_rootent(char *data, struct rootent *entry) {
 	entry->time_sec = time_tmp & 0x001F;	// Last 5 bits
 
 	unsigned short date_tmp = concat_uint8_uint16(data[25], data[24]);
-	entry->date_year = date_tmp >> 9;	     // First 7 bits
+	entry->date_year = (date_tmp >> 9) + 1980;    // First 7 bits
 	entry->date_month = (date_tmp & 0x01E0) >> 5; // Middle 4 bits
 	entry->date_day = date_tmp & 0x001F;	  // Last 5 bits
 
@@ -97,3 +133,4 @@ int get_file_sectors(struct FlopData *flopdata, struct rootent *fileEnt, int **s
 static int cluster2sector(struct FlopData *flopdata, int clusterNum) {
 	return clusterNum * flopdata->sectorsPerCluster + calc_data_start_sector(flopdata) - 2;
 }
+
