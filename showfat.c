@@ -8,6 +8,7 @@
 #include "structure.h"
 
 
+// Displays the first 256 entries of the FAT
 int command_showfat(struct FlopData *flopdata, int argc, char **argv) {
 
 	unsigned short fatBytes = 256 * 3 / 2; // Show the first 256 entries
