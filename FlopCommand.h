@@ -11,4 +11,7 @@ struct FlopCommand {
 	struct FlopCommand *pipeCommand;
 };
 
+void FlopCommand_destroy(struct FlopCommand*);
+struct FlopCommand *FlopCommand_new();
+
 #endif
