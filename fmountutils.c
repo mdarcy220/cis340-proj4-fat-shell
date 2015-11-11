@@ -9,6 +9,14 @@
 #include "fmountutils.h"
 #include "structure.h"
 
+
+/*typedef enum {
+	MOUNT_SUCCESS,
+	IMAGE_ALREADY_MOUNTED,
+	FILE_OPEN_ERROR
+} FMountStatus;*/
+
+
 // Mounts a FAT12 img file into the FlopData's image data
 int command_fmount(struct FlopData *flopdata, int argc, char **argv) {
 	// TODO: Add checks to catch errors
@@ -18,25 +26,7 @@ int command_fmount(struct FlopData *flopdata, int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 	
-	if(has_mounted_image(flopdata)) {
-		fprintf(stderr, "Error. There is an image already mounted. Please unmount it using fumount and try again.\n");
-		return EXIT_FAILURE;
-	}
-	
-	int fd = open(argv[1], O_RDONLY);
-	if(fd == -1) {
-		fprintf(stderr, "Error opening file. The image was not mounted successfully.\n");
-		return EXIT_FAILURE;
-	}
-	
-	flopdata->rawData = malloc((2880*512 + 1)*sizeof(*flopdata->rawData));
-	
-	flopdata->rawDataLen = read(fd, flopdata->rawData, 2880*512);
-	close(fd);
-	
-	load_fs_structure(flopdata);
-	
-	return 0;
+	return fmount(flopdata, argv[1]);
 }
 
 
@@ -50,7 +40,31 @@ int command_fumount(struct FlopData *flopdata, int argc, char **argv) {
 	fumount(flopdata);
 	
 	printf("The image was successfully unmounted.\n");
-	return 0;
+	return EXIT_SUCCESS;
+}
+
+
+// Mounts the floppy image located at the given path
+int fmount(struct FlopData *flopdata, char *imagePath) {
+	if(has_mounted_image(flopdata)) {
+		fprintf(stderr, "Error. There is an image already mounted. Please unmount it using fumount and try again.\n");
+		return EXIT_FAILURE;
+	}
+	
+	int fd = open(imagePath, O_RDONLY);
+	if(fd == -1) {
+		fprintf(stderr, "Error opening image file. The image was not mounted successfully.\n");
+		return EXIT_FAILURE;
+	}
+	
+	flopdata->rawData = malloc((2880*512 + 1)*sizeof(*flopdata->rawData));
+	
+	flopdata->rawDataLen = read(fd, flopdata->rawData, 2880*512);
+	close(fd);
+	
+	load_fs_structure(flopdata);
+	
+	return EXIT_SUCCESS;
 }
 
 

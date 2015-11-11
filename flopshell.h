@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include "flop.h"
 
+struct FlopShellState {
+	char* pathVar;
+	struct FlopData *flopdata;
+};
+
 void flopshell_start();
 
 #endif

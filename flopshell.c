@@ -8,45 +8,19 @@
 #include "parse.h"
 #include "exec_command.h"
 #include "flop.h"
-
-// include shell command functions
 #include "fmountutils.h"
-#include "help.h"
-#include "showfat.h"
-#include "showfile.h"
-#include "showsector.h"
-#include "structure.h"
-#include "traverse.h"
 
-
-// Represents a shell command
-struct BuiltInCommand {
-	char *commandName;
-	int execInChild;
-
-	int (*execute)(struct FlopData *flopdata, int argc, char **argv);
-};
 
 typedef enum { false = 0, true } bool;
 
 
 static void flopshell_run();
 static bool isQuitCommand(struct FlopCommand *);
-static const struct BuiltInCommand *get_shell_command(char *);
+static struct FlopShellState *FlopShellState_new();
+static void FlopShellState_destroy(struct FlopShellState *);
 
 
 static const char *SHELL_PROMPT = "flop: ";
-
-// Commands that can be executed
-static const struct BuiltInCommand BUILTIN_COMMANDS[] = {{"fmount", 1, command_fmount},
-							 {"fumount", 1, command_fumount},
-							 {"help", 1, command_help},
-							 {"showfat", 1, command_showfat},
-							 {"showfile", 1, command_showfile},
-							 {"showsector", 1, command_showsector},
-							 {"structure", 1, print_fs_structure},
-							 {"traverse", 1, command_traverse},
-							 {0}};
 
 
 // Start the flop shell
@@ -56,12 +30,13 @@ void flopshell_start() { flopshell_run(); }
 // Runs the flop shell until the user enters the "quit" command
 static void flopshell_run() {
 
-	struct FlopData flopdata = {NULL, 0};
+	struct FlopShellState *flopstate = FlopShellState_new();
+
 	bool userQuit = false;
 
 	// Init user input buffer
 	size_t inputBufCapacity = 256;
-	char *userinput = malloc(inputBufCapacity * sizeof(*userinput));
+	char *userinput = calloc(inputBufCapacity, sizeof(*userinput));
 
 	// Init token array
 	size_t tokArrCap = 1;
@@ -86,7 +61,7 @@ static void flopshell_run() {
 		userQuit = isQuitCommand(command);
 		if (!userQuit && command != NULL) {
 			// Execute the command
-			exec_command(command);
+			exec_command(flopstate, command);
 		}
 
 		// Destroy the command and free its memory
@@ -101,32 +76,43 @@ static void flopshell_run() {
 	}
 
 	// Clean up
-
+	FlopShellState_destroy(flopstate);
 	free(tokArr);
 	free(userinput);
-
-	if (flopdata.rawData != NULL) {
-		fumount(&flopdata);
-	}
 }
 
 
+// Checks if the given command is used to quit the shell
 static bool isQuitCommand(struct FlopCommand *command) {
-	if(command == NULL) {
+	if (command == NULL) {
 		return false;
 	}
 	return strcmp(command->commandName, "quit") == 0 || strcmp(command->commandName, "q") == 0;
 }
 
 
-// Get the appropriate shell command from its name
-static const struct BuiltInCommand *get_shell_command(char *commandName) {
-	int i;
-	for (i = 0; BUILTIN_COMMANDS[i].commandName != 0; i++) {
-		if (strcmp(commandName, BUILTIN_COMMANDS[i].commandName) == 0) {
-			return &BUILTIN_COMMANDS[i];
-		}
-	}
+// Creates a FlopShellState
+static struct FlopShellState *FlopShellState_new() {
+	struct FlopShellState *state = malloc(sizeof(struct FlopShellState));
+	memset(state, 0, sizeof(struct FlopShellState));
 
-	return NULL;
+	// Malloc the PATH variable so it can be expanded later if necessary
+	state->pathVar = malloc(256 * sizeof(char));
+	state->pathVar[0] = '\0';
+
+
+	state->flopdata = malloc(sizeof(struct FlopData));
+	memset(state->flopdata, 0, sizeof(struct FlopData));
+	fmount(state->flopdata, "./imagefile.img");
+
+	return state;
+}
+
+
+// Destroys a FlopShellState
+static void FlopShellState_destroy(struct FlopShellState *state) {
+	free(state->pathVar);
+	fumount(state->flopdata);
+	free(state->flopdata);
+	free(state);
 }
