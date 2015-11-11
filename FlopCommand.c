@@ -11,6 +11,18 @@ void FlopCommand_destroy(struct FlopCommand* command) {
 	if(command->pipeCommand != NULL) {
 		FlopCommand_destroy(command->pipeCommand);
 	}
+	
+	
+	int i;
+	for(i = 0; i < command->argc; i++) {
+		free(command->argv[i]);
+	}
+	free(command->argv);
+	
+	free(command->inputFile);
+	free(command->outputFile);
+	free(command->commandName);
+	
 	free(command);
 }
 

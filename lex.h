@@ -3,6 +3,17 @@
 
 #include <stdlib.h>
 
-size_t lex_flopsh(char *, char ***, size_t *);
+typedef enum TokenType {
+	tok_string,
+	tok_ioredirect
+} TokenType;
+
+
+struct Token {
+	TokenType tokType;
+	char *tokStr;
+};
+
+size_t lex_flopsh(char *, struct Token***, size_t *);
 
 #endif

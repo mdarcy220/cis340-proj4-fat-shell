@@ -65,7 +65,7 @@ static void flopshell_run() {
 
 	// Init token array
 	size_t tokArrCap = 1;
-	char **tokArr = malloc(tokArrCap * sizeof(char *));
+	struct Token **tokArr = malloc(tokArrCap * sizeof(struct Token *));
 
 	while (!userQuit) {
 		printf("%s", SHELL_PROMPT);
@@ -95,6 +95,7 @@ static void flopshell_run() {
 		// free the tokens in the token array
 		int i;
 		for (i = 0; i < nTokens; i++) {
+			free(tokArr[i]->tokStr);
 			free(tokArr[i]);
 		}
 	}

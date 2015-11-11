@@ -2,7 +2,8 @@
 #define PARSE_H_
 
 #include "FlopCommand.h"
+#include "lex.h"
 
-struct FlopCommand *parse_flopsh(char **, int);
+struct FlopCommand *parse_flopsh(struct Token **, int);
 
 #endif
