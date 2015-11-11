@@ -4,7 +4,6 @@
 
 #include "flopshell.h"
 #include "FlopCommand.h"
-#include "lex.h"
 #include "parse.h"
 #include "exec_command.h"
 #include "flop.h"
@@ -38,10 +37,6 @@ static void flopshell_run() {
 	size_t inputBufCapacity = 256;
 	char *userinput = calloc(inputBufCapacity, sizeof(*userinput));
 
-	// Init token array
-	size_t tokArrCap = 1;
-	struct Token **tokArr = malloc(tokArrCap * sizeof(struct Token *));
-
 	while (!userQuit) {
 		printf("%s", SHELL_PROMPT);
 
@@ -51,11 +46,8 @@ static void flopshell_run() {
 		// Remove the newline character at the end of the buffer
 		userinput[inputlen - 1] = '\0';
 
-		// Convert the input into an array of tokens
-		size_t nTokens = lex_flopsh(userinput, &tokArr, &tokArrCap);
-
 		// Parse the array of tokens into a command
-		struct FlopCommand *command = parse_flopsh(tokArr, nTokens);
+		struct FlopCommand *command = parse_flopsh(userinput);
 
 		// Check if the command was a quit command
 		userQuit = isQuitCommand(command);
@@ -66,18 +58,10 @@ static void flopshell_run() {
 
 		// Destroy the command and free its memory
 		FlopCommand_destroy(command);
-
-		// free the tokens in the token array
-		int i;
-		for (i = 0; i < nTokens; i++) {
-			free(tokArr[i]->tokStr);
-			free(tokArr[i]);
-		}
 	}
 
 	// Clean up
 	FlopShellState_destroy(flopstate);
-	free(tokArr);
 	free(userinput);
 }
 

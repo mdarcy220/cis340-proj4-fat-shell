@@ -4,6 +4,6 @@
 #include "FlopCommand.h"
 #include "lex.h"
 
-struct FlopCommand *parse_flopsh(struct Token **, int);
+struct FlopCommand *parse_flopsh(char*);
 
 #endif
