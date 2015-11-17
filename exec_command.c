@@ -1,88 +1,111 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-
 #include "exec_command.h"
 
 // Include headers for built-in commands
-#include "fmountutils.h"
 #include "help.h"
-#include "showfat.h"
-#include "showfile.h"
-#include "showsector.h"
-#include "structure.h"
-#include "traverse.h"
+#include "FlopCommand.h"
+#include "internalcommands.h"
 
 
-// Types of commands we can have
-typedef enum CommandType { CommandType_Builtin, CommandType_Internal, CommandType_Normal } CommandType;
-
-
-// Represents a shell command
-struct BuiltInCommand {
+struct InternalCommand {
 	char *commandName;
-	int execInChild;
-
-	int (*execute)(struct FlopData *flopdata, int argc, char **argv);
+	int (*execute)(struct FlopShellState *, struct FlopCommand *);
 };
 
 
-// Built-in commands that can be executed
-static const struct BuiltInCommand BUILTIN_COMMANDS[] = {{"fmount", 1, command_fmount},
-							 {"fumount", 1, command_fumount},
-							 {"help", 1, command_help},
-							 {"showfat", 1, command_showfat},
-							 {"showfile", 1, command_showfile},
-							 {"showsector", 1, command_showsector},
-							 {"structure", 1, print_fs_structure},
-							 {"traverse", 1, command_traverse},
-							 {0}};
-
-
 static CommandType get_command_type(struct FlopCommand *);
-static const struct BuiltInCommand *get_builtin_command(char *);
+static void get_command_exec_path(struct FlopShellState *, char *, struct FlopCommand *);
+
+static void exec_internal(struct FlopShellState *, struct FlopCommand *);
+static void exec_builtin(struct FlopShellState *, struct FlopCommand *);
+static void exec_normal(struct FlopShellState *, struct FlopCommand *);
+
+
+// Internal commands (from internalcommands.h)
+static const struct InternalCommand INTERNAL_COMMANDS[] = {{"cd", command_cd},
+							   {"path", command_path},
+							   {"quit", command_quit},
+							   {"q", command_quit},
+							   {NULL, NULL}};
+
+// Built-in commands that can be executed
+static const char *BUILTIN_COMMAND_NAMES[] = {"fmount",     "fumount",   "help",     "showfat", "showfile",
+					      "showsector", "structure", "traverse", NULL};
 
 
 // Executes the given FlopCommand. The FlopShellState (struct defined in flopshell.h) gives information about
 // the state of the flopshell, such as the PATH variable, mounted FlopData, etc.
 void exec_command(struct FlopShellState *flopstate, struct FlopCommand *command) {
 	CommandType commandType = get_command_type(command);
+
+
+	switch (commandType) {
+	case CommandType_Internal:
+		exec_internal(flopstate, command);
+		break;
+	case CommandType_Builtin:
+		exec_builtin(flopstate, command);
+		break;
+	case CommandType_Normal: {
+		exec_normal(flopstate, command);
+		break;
+	}
+	default:
+		fprintf(stderr, "An error occurred.\n");
+		break;
+	}
+}
+
+
+// Execute the given internal command
+static void exec_internal(struct FlopShellState *flopstate, struct FlopCommand *command) {
+	int i;
+	for (i = 0; INTERNAL_COMMANDS[i].commandName != NULL; i++) {
+		if (strcmp(command->commandName, INTERNAL_COMMANDS[i].commandName) == 0) {
+			INTERNAL_COMMANDS[i].execute(flopstate, command);
+		}
+	}
+}
+
+
+// Execute the given builtin command
+static void exec_builtin(struct FlopShellState *flopstate, struct FlopCommand *command) {}
+
+
+// Execute the given normal command
+static void exec_normal(struct FlopShellState *flopstate, struct FlopCommand *command) {
+	char *commandPath = calloc(256, sizeof(char));
+	get_command_exec_path(flopstate, commandPath, command);
+
+	// Fork and execute
+
+	free(commandPath);
 }
 
 
 // Gets the type of the specified command
 static CommandType get_command_type(struct FlopCommand *command) {
 	int i;
-	for (i = 0; BUILTIN_COMMANDS[i].commandName != 0; i++) {
-		if (strcmp(command->commandName, BUILTIN_COMMANDS[i].commandName) == 0) {
+
+	for (i = 0; BUILTIN_COMMAND_NAMES[i] != NULL; i++) {
+		if (strcmp(command->commandName, BUILTIN_COMMAND_NAMES[i]) == 0) {
 			return CommandType_Builtin;
 		}
 	}
 
-	// Internal commands are special, so check them individually
-	if (strcmp(command->commandName, "path") == 0) {
-		return CommandType_Internal;
-	}
-	if (strcmp(command->commandName, "cd") == 0) {
-		return CommandType_Internal;
-	}
-	if (strcmp(command->commandName, "quit") == 0) {
-		return CommandType_Internal;
-	}
-	if (strcmp(command->commandName, "q") == 0) {
-		return CommandType_Internal;
+	for (i = 0; INTERNAL_COMMANDS[i].commandName != NULL; i++) {
+		if (strcmp(command->commandName, INTERNAL_COMMANDS[i].commandName) == 0) {
+			return CommandType_Internal;
+		}
 	}
 
 	return CommandType_Normal;
 }
 
 
-// Get the appropriate built-in command from its name
-static const struct BuiltInCommand *get_builtin_command(char *commandName) {
-	int i;
-	for (i = 0; BUILTIN_COMMANDS[i].commandName != 0; i++) {
-		if (strcmp(commandName, BUILTIN_COMMANDS[i].commandName) == 0) {
-			return &BUILTIN_COMMANDS[i];
-		}
-	}
-
-	return NULL;
+// Gets the path to the executable file for the given command, and stores it in the given malloc'ed buffer
+static void get_command_exec_path(struct FlopShellState *flopstate, char *cmdPath, struct FlopCommand *cmd) {
+	
 }

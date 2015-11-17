@@ -101,14 +101,14 @@ struct Lexer *Lexer_new(char *input) {
 
 	// Allocate memory and initialize it with zeros
 	struct Lexer *lexer = calloc(1, sizeof(struct Lexer));
-	
+
 	lexer->inputStrLen = strlen(input);
 	lexer->inputStr = calloc(lexer->inputStrLen + 1, sizeof(char));
 	strcpy(lexer->inputStr, input);
-	
+
 	lexer->curPos = 0;
 	lexer->curTok = Token_new();
-	
+
 	return lexer;
 }
 
@@ -129,7 +129,7 @@ void Lexer_advanceToNextToken(struct Lexer *lexer) {
 
 	bool inQuote = false;
 	bool escapeNext = false;
-	
+
 	while (lexer->curPos <= lexer->inputStrLen) {
 		char ch = lexer->inputStr[lexer->curPos];
 
@@ -144,12 +144,15 @@ void Lexer_advanceToNextToken(struct Lexer *lexer) {
 		if (isQuote(ch)) {
 			inQuote = !inQuote; // Toggle whether we're in a quotation
 			lexer->curPos++;
-		} else if (ch == ' ' && lexer->curTok->tokStrLen != 0 && !inQuote) {
-			lexer->curTok->tokType = tok_string;
+		} else if (ch == ' ' && !inQuote) {
+			if (lexer->curTok->tokStrLen != 0) {
+				lexer->curTok->tokType = tok_string;
+				lexer->curPos++;
+				return;
+			}
 			lexer->curPos++;
-			return;
-		} else if(ch =='\0') {
-			if(lexer->curTok->tokStrLen != 0) {
+		} else if (ch == '\0') {
+			if (lexer->curTok->tokStrLen != 0) {
 				lexer->curTok->tokType = tok_string;
 			} else {
 				lexer->curTok->tokType = tok_eof;
