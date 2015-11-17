@@ -6,7 +6,6 @@
 #include "FlopCommand.h"
 #include "parse.h"
 #include "exec_command.h"
-#include "flop.h"
 
 
 static void flopshell_run();
@@ -19,7 +18,10 @@ static const char *SHELL_PROMPT = "flop: ";
 
 
 // Start the flop shell
-void flopshell_start() { flopshell_run(); }
+int main() {
+	flopshell_run();
+	return 0;
+}
 
 
 // Runs the flop shell until the user enters the "quit" command
@@ -62,7 +64,7 @@ static void flopshell_run() {
 // Creates a FlopShellState
 static struct FlopShellState *FlopShellState_new() {
 	struct FlopShellState *state = calloc(1, sizeof(struct FlopShellState));
-	
+
 
 	// Malloc the PATH variable so it can be expanded later if necessary
 	state->pathLen = 0;

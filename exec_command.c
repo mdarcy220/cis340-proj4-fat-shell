@@ -4,7 +4,6 @@
 #include "exec_command.h"
 
 // Include headers for built-in commands
-#include "help.h"
 #include "FlopCommand.h"
 #include "internalcommands.h"
 
@@ -106,6 +105,4 @@ static CommandType get_command_type(struct FlopCommand *command) {
 
 
 // Gets the path to the executable file for the given command, and stores it in the given malloc'ed buffer
-static void get_command_exec_path(struct FlopShellState *flopstate, char *cmdPath, struct FlopCommand *cmd) {
-	
-}
+static void get_command_exec_path(struct FlopShellState *flopstate, char *cmdPath, struct FlopCommand *cmd) {}
