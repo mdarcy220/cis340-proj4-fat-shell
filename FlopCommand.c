@@ -22,6 +22,7 @@ void FlopCommand_destroy(struct FlopCommand* command) {
 	free(command->inputFile);
 	free(command->outputFile);
 	free(command->commandName);
+	free(command->execPath);
 	
 	free(command);
 }
@@ -36,6 +37,7 @@ struct FlopCommand *FlopCommand_new() {
 	command->inputFile = NULL;
 	command->outputFile = NULL;
 	command->pipeCommand = NULL;
+	command->execPath = NULL;
 	
 	return command;
 }

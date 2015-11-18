@@ -1,6 +1,6 @@
 # Declaration of variables
 CC = gcc
-CC_FLAGS = -Wall -O2
+CC_FLAGS = -Wall
 LFLAGS = 
 
 # File names
@@ -16,7 +16,7 @@ OBJECTS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SOURCES))
 all: $(EXEC)
 	cd builtin_commands && $(MAKE) all
 
-debug: CC_FLAGS += -DDEBUG -g -Og
+debug: CC_FLAGS += -DDEBUG -g
 debug: $(EXEC)
 	cd builtin_commands && $(MAKE) debug
 

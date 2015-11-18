@@ -43,17 +43,14 @@ struct FlopCommand *parse_flopsh(char *input) {
 		Lexer_advanceToNextToken(lexer);
 	}
 
-	if (cmd->argc == 0) {
-		fprintf(stderr, "Missing cmd.\n");
-		hasError = true;
-	} else {
+	if (cmd->argc != 0)  {
 		cmd->commandName = calloc(strlen(cmd->argv[0]) + 1, sizeof(*cmd->commandName));
 		strcpy(cmd->commandName, cmd->argv[0]);
 	}
 
 	Lexer_destroy(lexer);
 
-	if (hasError) {
+	if (hasError || cmd->argc == 0) {
 		FlopCommand_destroy(cmd);
 		return NULL;
 	} else {

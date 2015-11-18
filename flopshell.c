@@ -6,10 +6,10 @@
 #include "FlopCommand.h"
 #include "parse.h"
 #include "exec_command.h"
+#include "internalcommands.h"
 
 
 static void flopshell_run();
-static bool isQuitCommand(struct FlopCommand *);
 static struct FlopShellState *FlopShellState_new();
 static void FlopShellState_destroy(struct FlopShellState *);
 
@@ -72,6 +72,14 @@ static struct FlopShellState *FlopShellState_new() {
 	state->pathVar = calloc(state->pathCap, sizeof(char));
 	state->pathVar[0] = '\0';
 
+	// Set the internal commands for the shell
+	state->internalCmds = calloc(5, sizeof(struct InternalCommand));
+	state->internalCmds[0] = (struct InternalCommand){"quit", command_quit};
+	state->internalCmds[1] = (struct InternalCommand){"q", command_quit};
+	state->internalCmds[2] = (struct InternalCommand){"path", command_path};
+	state->internalCmds[3] = (struct InternalCommand){"cd", command_cd};
+	state->internalCmds[4] = (struct InternalCommand){NULL, NULL}; // Null-terminate the array
+
 	state->hasQuit = false;
 
 	return state;
@@ -81,5 +89,6 @@ static struct FlopShellState *FlopShellState_new() {
 // Destroys a FlopShellState
 static void FlopShellState_destroy(struct FlopShellState *state) {
 	free(state->pathVar);
+	free(state->internalCmds);
 	free(state);
 }

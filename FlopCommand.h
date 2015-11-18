@@ -15,6 +15,7 @@ typedef enum CommandType {
 // Represents a shell command
 struct FlopCommand {
 	char *commandName;
+	char *execPath;
 	int argc;
 	char **argv;
 	char *inputFile;
