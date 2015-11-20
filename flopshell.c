@@ -2,20 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <unistd.h>
-#include <termios.h>
-
 #include "flopshell.h"
 #include "FlopCommand.h"
 #include "parse.h"
 #include "exec_command.h"
 #include "internalcommands.h"
+#include "shellinput.h"
 
 
 static void flopshell_run();
 static struct FlopShellState *FlopShellState_new();
 static void FlopShellState_destroy(struct FlopShellState *);
-static size_t getInputLine(char **, size_t*);
 
 
 static const char *SHELL_PROMPT = "flop: ";
@@ -40,11 +37,8 @@ static void flopshell_run() {
 	while (!flopstate->hasQuit) {
 		printf("%s", SHELL_PROMPT);
 
-		// Get command from user
-		size_t inputlen = getInputLine(&userinput, &inputBufCapacity);
-
-		// Remove the newline character at the end of the buffer
-		userinput[inputlen - 1] = '\0';
+		// Get input from user
+		get_next_input(&userinput, &inputBufCapacity);
 
 		// Parse the array of tokens into a command
 		struct FlopCommand *command = parse_flopsh(userinput);
@@ -95,55 +89,4 @@ static void FlopShellState_destroy(struct FlopShellState *state) {
 	free(state->pathVar);
 	free(state->internalCmds);
 	free(state);
-}
-
-
-// Gets a line of input
-static size_t getInputLine(char **buf, size_t *bufCap) {
-	// Save the current terminal settings
-	struct termios oldtermio;
-	struct termios newtermio;
-	tcgetattr(0, &oldtermio);
-	
-	// Set the terminal to unbuffered input mode
-	newtermio = oldtermio;
-	newtermio.c_lflag &= ~ECHO;
-	newtermio.c_lflag &= ~ICANON;
-	
-	tcsetattr(0, TCSANOW, &newtermio);
-	
-	off_t bufPos = 0;
-	size_t bufLen = 0;
-	(*buf)[bufLen] = '\0';
-	char ch;
-	
-	while(ch = getchar()) {
-		if(*bufCap < bufLen + 2) {
-			*buf = realloc(*buf, (*bufCap) * 2 * sizeof(**buf));
-			(*bufCap) *= 2;
-		}
-		
-		if(ch == 127 && 0 < bufPos) {
-			bufPos--;
-			bufLen--;
-			(*buf)[bufLen] = '\0';
-			printf("\b \b");
-			continue;
-		} else if (ch == 127) {
-			continue;
-		}
-		
-		(*buf)[bufPos++] = ch;
-		bufLen++;
-		(*buf)[bufLen] = '\0';
-		printf("%c", ch);
-		if(ch == '\n') {
-			break;
-		}
-	}
-	
-	// Set the terminal configuration back to the old settings
-	tcsetattr(0, TCSANOW, &oldtermio);
-	
-	return bufLen;
 }
