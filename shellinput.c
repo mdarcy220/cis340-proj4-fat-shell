@@ -26,9 +26,7 @@ static void handle_special_char(char **, off_t *, size_t *);
 
 // Gets a line of input for the given FlopShellState and stores it in the given buffer with given capacity
 // The capacity will be modified if the buffer needs to be expanded
-size_t get_next_input(char **buf, size_t *bufCap) {
-	return get_input_line(buf, bufCap);
-}
+size_t get_next_input(char **buf, size_t *bufCap) { return get_input_line(buf, bufCap); }
 
 
 // Gets a line of input
@@ -59,18 +57,20 @@ static size_t get_input_line(char **buf, size_t *bufCap) {
 		}
 
 		if (ch == 127 && 0 < bufPos) {
+			printf("\b");
 			int i;
-			for (i = bufPos; i <= bufLen; i++) {
-				(*buf)[i - 1] = (*buf)[i];
+			for (i = bufPos; i < bufLen; i++) {
 				printf("%c", (*buf)[i]);
+				(*buf)[i-1] = (*buf)[i];
 			}
+			(*buf)[bufLen] = '\0';
 
 			// Overwrite the last char
-			printf("\b ");
+			printf(" ");
 
 			bufPos--;
 			bufLen--;
-			for (i = 0; i < (bufLen - bufPos + 1); i++) {
+			for (i = 0; i < (bufLen - bufPos+1); i++) {
 				printf("\b");
 			}
 
@@ -98,7 +98,7 @@ static size_t get_input_line(char **buf, size_t *bufCap) {
 			printf("%c", (*buf)[i]);
 		}
 
-		for (i = bufLen-1; bufPos <= i; i--) {
+		for (i = bufLen - 1; bufPos <= i; i--) {
 			(*buf)[i + 1] = (*buf)[i];
 		}
 
