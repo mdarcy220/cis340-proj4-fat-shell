@@ -7,6 +7,7 @@
 #include "parse.h"
 #include "exec_command.h"
 #include "internalcommands.h"
+#include "shellinput.h"
 
 
 static void flopshell_run();
@@ -36,11 +37,8 @@ static void flopshell_run() {
 	while (!flopstate->hasQuit) {
 		printf("%s", SHELL_PROMPT);
 
-		// Get command from user
-		size_t inputlen = getline(&userinput, &inputBufCapacity, stdin);
-
-		// Remove the newline character at the end of the buffer
-		userinput[inputlen - 1] = '\0';
+		// Get input from user
+		get_next_input(&userinput, &inputBufCapacity);
 
 		// Parse the array of tokens into a command
 		struct FlopCommand *command = parse_flopsh(userinput);
