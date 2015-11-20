@@ -60,7 +60,7 @@ static size_t get_input_line(char **buf, size_t *bufCap) {
 
 		if (ch == 127 && 0 < bufPos) {
 			int i;
-			for (i = bufPos; i < bufLen; i++) {
+			for (i = bufPos; i <= bufLen; i++) {
 				(*buf)[i - 1] = (*buf)[i];
 				printf("%c", (*buf)[i]);
 			}
@@ -94,11 +94,11 @@ static size_t get_input_line(char **buf, size_t *bufCap) {
 		// Print the rest of the characters (now shifted by one to make space for the new char)
 		// Also, shift the characters in the buffer to make space for the new char
 		int i;
-		for (i = bufPos + 1; i <= bufLen; i++) {
-			printf("%c", (*buf)[i - 1]);
+		for (i = bufPos; i < bufLen; i++) {
+			printf("%c", (*buf)[i]);
 		}
 
-		for (i = bufLen; bufPos < i; i--) {
+		for (i = bufLen-1; bufPos <= i; i--) {
 			(*buf)[i + 1] = (*buf)[i];
 		}
 
@@ -148,7 +148,7 @@ static void handle_special_char(char **buf, off_t *bufPos, size_t *bufLen) {
 		if (*bufPos < *bufLen) {
 
 			int i;
-			for (i = *bufPos + 1; i < *bufLen; i++) {
+			for (i = *bufPos + 1; i <= *bufLen; i++) {
 				(*buf)[i - 1] = (*buf)[i];
 				printf("%c", (*buf)[i]);
 			}
