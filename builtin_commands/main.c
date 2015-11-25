@@ -10,6 +10,9 @@
 #include <stdlib.h>
 
 
+#define IMAGEFILE_PATH "imagefile.img"
+
+
 #ifdef HELP_MAIN
 
 int main(int argc, char **argv) {
@@ -23,7 +26,7 @@ int main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	struct FlopData *data = calloc(1, sizeof(struct FlopData));
-	fmount(data, "../test/imagefile.img");
+	fmount(data, IMAGEFILE_PATH);
 	return command_showfat(data, argc, argv);
 }
 
@@ -34,7 +37,7 @@ int main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	struct FlopData *data = calloc(1, sizeof(struct FlopData));
-	fmount(data, "../test/imagefile.img");
+	fmount(data, IMAGEFILE_PATH);
 	return command_showfile(data, argc, argv);
 }
 
@@ -45,7 +48,7 @@ int main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	struct FlopData *data = calloc(1, sizeof(struct FlopData));
-	fmount(data, "../test/imagefile.img");
+	fmount(data, IMAGEFILE_PATH);
 	return command_showsector(data, argc, argv);
 }
 
@@ -56,7 +59,7 @@ int main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	struct FlopData *data = calloc(1, sizeof(struct FlopData));
-	fmount(data, "../test/imagefile.img");
+	fmount(data, IMAGEFILE_PATH);
 	return print_fs_structure(data, argc, argv);
 }
 
@@ -67,7 +70,7 @@ int main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	struct FlopData *data = calloc(1, sizeof(struct FlopData));
-	fmount(data, "../test/imagefile.img");
+	fmount(data, IMAGEFILE_PATH);
 	return command_traverse(data, argc, argv);
 }
 
