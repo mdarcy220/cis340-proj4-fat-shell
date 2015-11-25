@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 #include "exec_command.h"
 #include "FlopCommand.h"
@@ -18,6 +20,7 @@ static int is_valid_file(char *);
 
 static void exec_internal(struct FlopShellState *, struct FlopCommand *);
 static void exec_normal(struct FlopShellState *, struct FlopCommand *);
+static void child_exec(struct FlopShellState *, struct FlopCommand *);
 
 
 // Built-in commands that can be executed
@@ -59,12 +62,80 @@ static void exec_normal(struct FlopShellState *flopstate, struct FlopCommand *co
 	if (command->execPath == NULL) {
 		return;
 	}
-	
+
+	int childpid = fork();
+	if (childpid == 0) {
+		child_exec(flopstate, command);
+	}
+
+	int status;
+	wait(&status);
+
 	// The execPath in command may not actually be an executable file. Only it's existence is guaranteed.
 	// Therefore, execve may fail.
 
 	// TODO: Fork and execute
+}
+
+
+// The command execution code for the child process (where the commands should execute), which calls execv
+static void child_exec(struct FlopShellState *flopstate, struct FlopCommand *command) {
+	// NOTE: redirection operators ('<' and '>') should override the pipe operator
 	
+	// if pipe is used
+	if (command->pipeCommand != NULL) {
+		int pipefd[2];
+		if(pipe(pipefd) == -1) {
+			fprintf(stderr, "Pipe failed. Aborting.\n");
+			exit(EXIT_FAILURE);
+		}
+		
+		int forkpid = fork();
+		if(forkpid == -1) {
+			fprintf(stderr, "Fork failed.\n");
+			exit(EXIT_FAILURE);
+		} else if(forkpid == 0) {
+			close(pipefd[1]); // Child doesn't need the write end
+			dup2(pipefd[0], STDIN_FILENO);
+			close(pipefd[0]);
+			exec_normal(flopstate, command->pipeCommand);
+			exit(EXIT_SUCCESS);
+		} else {
+			close(pipefd[0]); // parent doesn't need read end
+			dup2(pipefd[1], STDOUT_FILENO);
+			close(pipefd[1]);
+		}
+	}
+	
+	// If output redirection is used
+	if (command->outputFile != NULL) {
+		int outfd = open(command->outputFile, O_CREAT | O_WRONLY | O_TRUNC);
+		if (outfd != -1) {
+			dup2(outfd, STDOUT_FILENO);
+		} else {
+			fprintf(stderr, "Error opening output file for writing.\n");
+			exit(0);
+		}
+		close(outfd);
+	}
+
+	// if input redirection is used
+	if (command->inputFile != NULL) {
+		int infd = open(command->inputFile, O_RDONLY);
+		if (infd != -1) {
+			dup2(infd, STDIN_FILENO);
+		} else {
+			fprintf(stderr, "Error opening input file for reading.\n");
+			exit(0);
+		}
+		close(infd);
+	}
+
+	execv(command->execPath, command->argv);
+	// TODO: Check errno for failure reason (permission denied, etc)
+	printf("FAILED TO EXECUTE!!!\n");
+	fflush(stdout);
+	exit(0);
 }
 
 
@@ -120,7 +191,7 @@ static void get_command_exec_path(struct FlopShellState *flopstate, struct FlopC
 		return;
 	}
 
-	
+
 	// Search through the path variable until command is found
 	off_t pathVarPos = 0;
 	off_t execPathPos = 0;
