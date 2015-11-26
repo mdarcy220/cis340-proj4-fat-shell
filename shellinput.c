@@ -56,20 +56,20 @@ static size_t get_input_line(char **buf, size_t *bufCap) {
 			(*bufCap) *= 2;
 		}
 
-		if (ch == 127 && 0 < bufPos) {
+		// Backspace
+		if ((KeyCode)ch == BACKSPACE && 0 < bufPos) {
 			printf("\b");
 			int i;
 			for (i = bufPos; i < bufLen; i++) {
 				printf("%c", (*buf)[i]);
 				(*buf)[i-1] = (*buf)[i];
 			}
-			(*buf)[bufLen] = '\0';
+			(*buf)[--bufLen] = '\0';
 
 			// Overwrite the last char
 			printf(" ");
 
 			bufPos--;
-			bufLen--;
 			for (i = 0; i < (bufLen - bufPos+1); i++) {
 				printf("\b");
 			}
