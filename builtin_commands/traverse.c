@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include "flop.h"
 #include "fatroot.h"
 #include "fmountutils.h"
@@ -122,6 +123,9 @@ static void path_remove_last(char *path) {
 static void print_entry(struct rootent *ent, char *path, int printType) {
 	char filename_full[13];
 	get_full_filename(ent, filename_full);
+	struct winsize w;
+		 ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+	int full_length = strlen(path)+strlen(filename_full);
 
 
 	if (printType == PRINT_NORMAL) {
@@ -149,10 +153,10 @@ static void print_entry(struct rootent *ent, char *path, int printType) {
 			sprintf(directoryStr, "      %4d", ent->filesize);
 		}
 
-		printf("%s     %02d/%02d/%04d %02d:%02d:%02d        %s     %s%s\n", attrStr, ent->date_month,
+		printf("%s     %02d/%02d/%04d %02d:%02d:%02d        %s     %s%s%*s %4d\n", attrStr, ent->date_month,
 		       ent->date_day, ent->date_year, ent->time_hour, ent->time_min, ent->time_sec,
-		       directoryStr, path, filename_full);
-	}
+		       directoryStr, path, filename_full, w.ws_col-(full_length+60)%w.ws_col, "", ent->first_cluster);
+		}
 }
 
 
