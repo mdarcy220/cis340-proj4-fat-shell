@@ -42,9 +42,21 @@ int command_path(struct FlopShellState *flopstate, struct FlopCommand *command) 
 	if (command->argc == 1) {
 		printf("%s\n", flopstate->pathVar);
 		return 0;
-	} else if (command->argc == 2) {
-		fprintf(stderr, "Invalid number of arguments.\n");
-		return 1;
+	} else if (command->argc == 2 && strcmp(command->argv[1], "import") == 0) {
+		char *newPath = getenv("PATH");
+		if(newPath == NULL) {
+			fprintf(stderr, "Unable to get PATH from environment");
+			return 0;
+		}
+		
+		flopstate->pathLen = strlen(newPath);
+		if(flopstate->pathCap < flopstate->pathLen+1) {
+			free(flopstate->pathVar);
+			flopstate->pathCap = flopstate->pathLen+1;
+			flopstate->pathVar = calloc(flopstate->pathCap, sizeof(char));
+		}
+		strcpy(flopstate->pathVar, newPath);
+		return 0;
 	}
 
 	if (strcmp(command->argv[1], "+") == 0) {

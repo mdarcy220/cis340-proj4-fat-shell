@@ -28,7 +28,12 @@ struct FlopCommand *parse_flopsh(char *input) {
 	Lexer_advanceToNextToken(lexer);
 	while (lexer->curTok->tokType != tok_eof) {
 		if (lexer->curTok->tokType == tok_ioredirect) {
-			if(process_ioredir_tok(lexer, cmd) != 0) {
+			int status = process_ioredir_tok(lexer, cmd);
+			
+			if(status == -1) {
+				// We;ve hit a pipe, so stop
+				break;
+			} else if(status != 0) {
 				hasError = true;
 				break;
 			}
@@ -42,6 +47,9 @@ struct FlopCommand *parse_flopsh(char *input) {
 
 		Lexer_advanceToNextToken(lexer);
 	}
+	
+	cmd->argv = realloc(cmd->argv, (cmd->argc + 1) * sizeof(char *));
+	cmd->argv[cmd->argc] = NULL; // NULL-terminate the array
 
 	if (cmd->argc != 0)  {
 		cmd->commandName = calloc(strlen(cmd->argv[0]) + 1, sizeof(*cmd->commandName));
@@ -83,6 +91,7 @@ static int process_ioredir_tok(struct Lexer *lexer, struct FlopCommand *cmd) {
 	} else if (redirChar == '|') {
 		// Parse the subcommand, starting at the location of the pipe character
 		cmd->pipeCommand = parse_flopsh(lexer->inputStr + redirPos);
+		return -1;
 	} else {
 		fprintf(stderr, "An unexpected error occurred while parsing input.\n");
 		return 1;
