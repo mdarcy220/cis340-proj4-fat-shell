@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <limits.h>
 
 #include "flopshell.h"
 #include "FlopCommand.h"
@@ -11,11 +13,9 @@
 
 
 static void flopshell_run();
+static void print_shell_prompt(struct FlopShellState *);
 static struct FlopShellState *FlopShellState_new();
 static void FlopShellState_destroy(struct FlopShellState *);
-
-
-static const char *SHELL_PROMPT = "flop: ";
 
 
 // Start the flop shell
@@ -35,7 +35,7 @@ static void flopshell_run() {
 	char *userinput = calloc(inputBufCapacity, sizeof(*userinput));
 
 	while (!flopstate->hasQuit) {
-		printf("%s", SHELL_PROMPT);
+		print_shell_prompt(flopstate);
 
 		// Get input from user
 		get_next_input(&userinput, &inputBufCapacity);
@@ -56,6 +56,27 @@ static void flopshell_run() {
 	// Clean up
 	FlopShellState_destroy(flopstate);
 	free(userinput);
+}
+
+
+// Prints the shell prompt
+static void print_shell_prompt(struct FlopShellState *flopstate) {
+	char *homedir = getenv("HOME");
+	char *cwd = malloc(PATH_MAX * sizeof(char));
+	getcwd(cwd, PATH_MAX * sizeof(char));
+
+	if (homedir != NULL && strncmp(homedir, cwd, strlen(homedir)) == 0) {
+		// Replace the start of the path with a '~'
+		cwd[0] = '~';
+		int homedirlen = strlen(homedir);
+		int cwdlen = strlen(cwd);
+		int i;
+		for (i = 1; i < cwdlen - homedirlen+1; i++) {
+			cwd[i] = cwd[i + homedirlen-1];
+		}
+	}
+	printf("flop:%s$ ", cwd);
+	free(cwd);
 }
 
 
