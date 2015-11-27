@@ -71,9 +71,10 @@ static void print_shell_prompt(struct FlopShellState *flopstate) {
 		int homedirlen = strlen(homedir);
 		int cwdlen = strlen(cwd);
 		int i;
-		for (i = 1; i < cwdlen - homedirlen+1; i++) {
-			cwd[i] = cwd[i + homedirlen-1];
+		for (i = 1; i < cwdlen - homedirlen + 1; i++) {
+			cwd[i] = cwd[i + homedirlen - 1];
 		}
+		cwd[cwdlen - homedirlen+1] = '\0';
 	}
 	printf("flop:%s$ ", cwd);
 	free(cwd);
