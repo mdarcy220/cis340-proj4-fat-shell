@@ -2,7 +2,11 @@
 
 
 ## Description 
-
+update our floppy disc reader from project 3 to a full shell.  that supports
+input redirection and line parsing.  Update all of the previous functions into
+executable files that run as a child process from the parent shell process.
+include two new commands into the shell.  A path command which shows current path
+and a 'cd' command that changes the directory within the shell
 
 ## Group Members
 
@@ -19,6 +23,22 @@ where the files are located by typing 'make' at the command prompt.
 
 ## Sample output
 
+path import, path commands
+path import appends the currents the current path to the path command
+path shows the current path
+
+flop:/home/student/midarcy/shared/proj4/src$ path import
+flop:/home/student/midarcy/shared/proj4/src$ path
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+flop:/home/student/midarcy/shared/proj4/src$ 
+
+cd -  changes current directory
+
+flop:/home/student/midarcy/shared/proj4/src$ cd ..
+flop:/home/student/midarcy/shared/proj4$ cd src
+flop:/home/student/midarcy/shared/proj4/src$ 
+
+we included the current directory path into the flop prompt.
 
 ## Known bugs
 
