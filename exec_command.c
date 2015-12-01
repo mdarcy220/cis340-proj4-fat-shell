@@ -32,7 +32,11 @@ static const char *BUILTIN_COMMAND_NAMES[] = {"fmount",     "fumount",   "help",
 // Executes the given FlopCommand. The FlopShellState (struct defined in flopshell.h) gives information about
 // the state of the flopshell, such as the PATH variable, mounted FlopData, etc.
 void exec_command(struct FlopShellState *flopstate, struct FlopCommand *command) {
-	command->type = get_command_type(flopstate, command);
+	struct FlopCommand *curCmd = command;
+	while(curCmd != NULL) {
+		curCmd->type = get_command_type(flopstate, curCmd);
+		curCmd = curCmd->pipeCommand;
+	}
 
 	if (command->type == CommandType_Internal) {
 		exec_internal(flopstate, command);
@@ -66,7 +70,7 @@ static void exec_normal(struct FlopShellState *flopstate, struct FlopCommand *co
 	
 
 	struct FlopCommand *curCmd = command;
-	int curPipe[2];
+	int pipe_current[2];
 	int oldPipeReadFd = -1;
 	int nChildren = 0;
 
@@ -78,25 +82,29 @@ static void exec_normal(struct FlopShellState *flopstate, struct FlopCommand *co
 		}
 		
 		if(curCmd->pipeCommand != NULL) {
-			if(pipe((int*)&curPipe) == -1) {
+			if(pipe((int*)&pipe_current) == -1) {
 				fprintf(stderr, "Pipe failed. Aborting.\n");
 				break;
 			}
 		} else {
-			curPipe[1] = -1;
+			pipe_current[1] = -1;
 		}
 		int childpid = fork();
 		if (childpid == 0) {
-			child_exec(flopstate, curCmd, oldPipeReadFd, curPipe[1]);
+			child_exec(flopstate, curCmd, oldPipeReadFd, pipe_current[1]);
 			exit(0);
 		}
 		nChildren++;
 		
 		// Close the pipes, since this is the parent and we don't need them
-		close(curPipe[1]);
-		close(oldPipeReadFd);
+		if(pipe_current[1] != -1) {
+			close(pipe_current[1]);
+		}
+		if(oldPipeReadFd != -1) {
+			close(oldPipeReadFd);
+		}
 		
-		oldPipeReadFd = curPipe[0];
+		oldPipeReadFd = pipe_current[0];
 		
 		curCmd = curCmd->pipeCommand;
 	}
@@ -270,6 +278,7 @@ static int find_exec_in_dir(char *dirPath, char *cmdName) {
 	struct dirent *dirinfo;
 	while ((dirinfo = readdir(dirp)) != NULL) {
 		if (strcmp(dirinfo->d_name, cmdName) == 0) {
+			closedir(dirp);
 			return 1;
 		}
 	}
