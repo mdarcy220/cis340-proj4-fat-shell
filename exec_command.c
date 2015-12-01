@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "exec_command.h"
 #include "FlopCommand.h"
@@ -18,6 +21,7 @@ static int is_valid_file(char *);
 
 static void exec_internal(struct FlopShellState *, struct FlopCommand *);
 static void exec_normal(struct FlopShellState *, struct FlopCommand *);
+static void child_exec(struct FlopShellState *, struct FlopCommand *, int, int);
 
 
 // Built-in commands that can be executed
@@ -60,11 +64,105 @@ static void exec_normal(struct FlopShellState *flopstate, struct FlopCommand *co
 		return;
 	}
 	
+
+	struct FlopCommand *curCmd = command;
+	int curPipe[2];
+	int oldPipeReadFd = -1;
+	int nChildren = 0;
+
+	// Handle pipes
+	while (curCmd != NULL) {
+		get_command_exec_path(flopstate, curCmd);
+		if(curCmd->execPath == NULL) {
+			break;
+		}
+		
+		if(curCmd->pipeCommand != NULL) {
+			if(pipe((int*)&curPipe) == -1) {
+				fprintf(stderr, "Pipe failed. Aborting.\n");
+				break;
+			}
+		} else {
+			curPipe[1] = -1;
+		}
+		int childpid = fork();
+		if (childpid == 0) {
+			child_exec(flopstate, curCmd, oldPipeReadFd, curPipe[1]);
+			exit(0);
+		}
+		nChildren++;
+		
+		// Close the pipes, since this is the parent and we don't need them
+		close(curPipe[1]);
+		close(oldPipeReadFd);
+		
+		oldPipeReadFd = curPipe[0];
+		
+		curCmd = curCmd->pipeCommand;
+	}
+
+	// wait for all the children to terminate
+	int status;
+	while(0 < nChildren) {
+		if(wait(&status) == -1 && errno == ECHILD) {
+			break;
+		}
+		nChildren--;
+	}
+
 	// The execPath in command may not actually be an executable file. Only it's existence is guaranteed.
 	// Therefore, execve may fail.
 
 	// TODO: Fork and execute
+}
+
+
+// The command execution code for the child process (where the commands should execute), which calls execv
+static void child_exec(struct FlopShellState *flopstate, struct FlopCommand *cmd, int pipeInFd, int pipeOutFd) {
+	// NOTE: redirection operators ('<' and '>') should override the pipe operator
 	
+	
+	if(pipeInFd != -1) {
+		dup2(pipeInFd, STDIN_FILENO);
+		close(pipeInFd);
+	}
+	
+	if(pipeOutFd != -1) {
+		dup2(pipeOutFd, STDOUT_FILENO);
+		close(pipeOutFd);
+	}
+
+	// If output redirection is used
+	if (cmd->outputFile != NULL) {
+		int outfd = open(cmd->outputFile, O_CREAT | O_WRONLY | O_TRUNC);
+		if (outfd != -1) {
+			dup2(outfd, STDOUT_FILENO);
+		} else {
+			fprintf(stderr, "Error opening output file for writing.\n");
+			exit(0);
+		}
+		close(outfd);
+	}
+
+	// if input redirection is used
+	if (cmd->inputFile != NULL) {
+		int infd = open(cmd->inputFile, O_RDONLY);
+		if (infd != -1) {
+			dup2(infd, STDIN_FILENO);
+		} else {
+			fprintf(stderr, "Error opening input file for reading.\n");
+			exit(0);
+		}
+		close(infd);
+	}
+
+
+	execv(cmd->execPath, cmd->argv);
+	
+	// TODO: Check errno for failure reason (permission denied, etc)
+	printf("Failed to execute command: Error code %d\n", errno);
+	fflush(stdout);
+	exit(0);
 }
 
 
@@ -120,7 +218,7 @@ static void get_command_exec_path(struct FlopShellState *flopstate, struct FlopC
 		return;
 	}
 
-	
+
 	// Search through the path variable until command is found
 	off_t pathVarPos = 0;
 	off_t execPathPos = 0;
