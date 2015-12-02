@@ -142,7 +142,8 @@ static void child_exec(struct FlopShellState *flopstate, struct FlopCommand *cmd
 
 	// If output redirection is used
 	if (cmd->outputFile != NULL) {
-		int outfd = open(cmd->outputFile, O_CREAT | O_WRONLY | O_TRUNC);
+		static const int DEFAULT_PERMISSIONS = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+		int outfd = open(cmd->outputFile, O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_PERMISSIONS);
 		if (outfd != -1) {
 			dup2(outfd, STDOUT_FILENO);
 		} else {

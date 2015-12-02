@@ -8,6 +8,7 @@ executable files that run as a child process from the parent shell process.
 include two new commands into the shell.  A path command which shows current path
 and a 'cd' command that changes the directory within the shell
 
+
 ## Group Members
 
 Name		| CSUID	| Contribution
@@ -17,9 +18,13 @@ Joe Komperda	|2616266|          33%
 Kyle Lutner	|2621469|          33%
 
 
-## Compiling
+## Compiling and running
 To compile the shell, simply use the makefile at the command prompt in the directory
-where the files are located by typing 'make' at the command prompt.
+where the files are located by typing 'make' at the command prompt. The 
+executable is named "a.out". NOTE: The image file name for the built-in commands 
+has been hard-coded as "imagefile.img" (in the current directory, so ./imagefile.img). 
+A sample image file is included with the source for your convenience.
+
 
 ## Sample output
 
@@ -229,6 +234,8 @@ flop:~/shared/proj4/src$ ls -l|cat|cat| cat |grep exec
 -rw-rw-r--  1 midarcy  users   172 Nov 11 09:42 exec_command.h
 -rw-rw-r--  1 jokomper users  7512 Dec  1 11:07 exec_command.o
 
+
+
 ## Known bugs
 
 1. Command editing doesn't work properly when command wraps to a new line. 
@@ -242,3 +249,49 @@ correct name, but does not have execute permission. For example, if there is
 a file in the "scratch" directory named "ls", with permissions "-rw-r--r--", 
 and PATH is set to "scratch:/bin", running the command "ls" will produce an 
 error, even though a working ls executable is in /bin.
+
+3. Single quotes don't work. Only double quotes are functional.
+
+
+
+## Extra Features
+
+1. A mixture of pipes and redirection can be used, like so:
+```
+flop:~/shared/proj4/tmp$ cat<input.txt|wc>output.txt
+flop:~/shared/proj4/tmp$ cat output.txt
+      2      19      95
+```
+
+2. Arrow keys are functional on the command line, and commands can be edited.
+
+3. Quotes work:
+```
+flop:~/shared/proj4/tmp$ touch "name with spaces.txt"
+flop:~/shared/proj4/tmp$ ls -l
+total 8
+-rw-rw-r-- 1 midarcy users 95 Dec  1 19:10 input.txt
+-rw-rw-r-- 1 midarcy users  0 Dec  1 19:27 name with spaces.txt
+-rw-rw-r-- 1 midarcy users 24 Dec  1 19:24 output.txt
+```
+
+4. Backslashes can also be used to escape spaces and quotes:
+```
+flop:~/shared/proj4/tmp$ touch \"name\ with\ quotes\ and\ spaces\".txt
+flop:~/shared/proj4/tmp$ ls -l
+total 8
+-rw-rw-r-- 1 midarcy users 95 Dec  1 19:10 input.txt
+-rw-rw-r-- 1 midarcy users  0 Dec  1 19:30 "name with quotes and spaces".txt
+-rw-rw-r-- 1 midarcy users  0 Dec  1 19:27 name with spaces.txt
+-rw-rw-r-- 1 midarcy users 24 Dec  1 19:24 output.txt
+```
+
+5. There is a "path import" command to automatically copy the PATH environment 
+variable to the shell's path variable:
+```
+flop:~/shared/proj4/src$ path
+
+flop:~/shared/proj4/src$ path import
+flop:~/shared/proj4/src$ path
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/student/midarcy/usr/bin
+```
