@@ -1,5 +1,13 @@
 # CIS 340 Project 4
 
+## Contents (in order)
+ - Description
+ - Group Members
+ - Compilation and running
+ - Sample ouputs
+ - High-level Design
+ - Known bugs
+ - Extra Features
 
 ## Description 
 update our floppy disc reader from project 3 to a full shell.  that supports
@@ -236,6 +244,23 @@ flop:~/shared/proj4/src$ ls -l|cat|cat| cat |grep exec
 
 
 
+## High-level Design
+The general design for this project was as follows:
+
+Get user input --> Parser --> Executer
+
+The user-prompting code (in flopshell.c and shellinput.c) simply prompts the user and 
+retreives a line of text from the console and passes it to the parser. The parser 
+(in lex.c and parse.c) converts the given text to a FlopCommand struct that holds 
+all relevent information about the command, including the argv array, input file name, 
+and output file name. It also holds a pointer to another FlopCommand that represents 
+the command being piped to (if there was a pipe). After being parsed, the command is 
+executed (code in exec_command.c). The execution code first checks if the command is 
+an internal comamnd, and if so calls the appropriate function. Otherwise, it searches 
+the path variable for the executable file, forks, performs I/O redirection, and waits 
+for the child to terminate before prompting again.
+
+
 ## Known bugs
 
 1. Command editing doesn't work properly when command wraps to a new line. 
@@ -286,7 +311,17 @@ total 8
 -rw-rw-r-- 1 midarcy users 24 Dec  1 19:24 output.txt
 ```
 
-5. There is a "path import" command to automatically copy the PATH environment 
+5. Pipes (|) and redirectors (<, >) don't need to be separated from commands 
+with spaces:
+```
+flop:~/shared/proj4/src$ ps aux|grep a.out
+arndt     5062  0.0  0.0   4192     0 ?        S    Nov09   0:00 ./a.out
+midarcy  31224  0.0  0.0   4344   612 pts/31   S+   19:41   0:00 ./a.out
+midarcy  32096  0.0  0.0  11744   924 pts/31   S+   20:13   0:00 grep a.out
+```
+
+
+6. There is a "path import" command to automatically copy the PATH environment 
 variable to the shell's path variable:
 ```
 flop:~/shared/proj4/src$ path
