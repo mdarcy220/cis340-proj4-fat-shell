@@ -14,8 +14,8 @@ void print_help() {
 	
         printf("\nThe shell has the following commands.\n\n");
         printf("usage___________________________|result_______________________\n");
-        printf("fmount [path to image]\t\t|mounts the image to the shell.\n");
-        printf("fumount \t\t\t|tunmounts image from shell.\n");             
+        printf("cd [directory] \t\t\t|change current directory.\n");
+        printf("path [+/-] [pathname] \t\t|shows working path or appends current search path\n");             
         printf("showfat\t\t\t\t|shows the fat1 table for mounted image.\n");
         printf("traverse\t\t\t|shows directory entries on image.\n");
         printf("showfile [directory entry]\t|shows file raw data.\n");
