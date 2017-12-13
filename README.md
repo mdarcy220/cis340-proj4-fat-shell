@@ -263,7 +263,7 @@ Get user input --> Parser --> Executer
 
 The user-prompting code (in `flopshell.c` and `shellinput.c`) simply prompts
 the user and retreives a line of text from the console and passes it to the
-parser. The parser (in lex.c and parse.c) converts the given text to
+parser. The parser (in `lex.c` and `parse.c`) converts the given text to
 a FlopCommand struct that holds all relevent information about the command,
 including the argv array, input file name, and output file name. It also holds
 a pointer to another FlopCommand that represents the command being piped to (if
@@ -343,3 +343,7 @@ flop:~/shared/proj4/src$ path import
 flop:~/shared/proj4/src$ path
 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/student/midarcy/usr/bin
 ```
+
+
+# License
+The program is released under the GNU GPL. See the `COPYING` file for details.
