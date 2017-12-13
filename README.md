@@ -2,7 +2,6 @@
 
 ## Contents (in order)
  - Description
- - Group Members
  - Compilation and running
  - Sample ouputs
  - High-level Design
@@ -10,28 +9,21 @@
  - Extra Features
 
 ## Description 
-update our floppy disc reader from project 3 to a full shell.  that supports
-input redirection and line parsing.  Update all of the previous functions into
-executable files that run as a child process from the parent shell process.
-include two new commands into the shell.  A path command which shows current path
-and a 'cd' command that changes the directory within the shell
-
-
-## Group Members
-
-Name		| CSUID	| Contribution
-----------------|-------|-------------
-Michael D'Arcy  |2553280|          33%
-Joe Komperda	|2616266|          33%
-Kyle Lutner	|2621469|          33%
+This project implements a command-line interface for a set of floppy-disk
+utilies. It was completed as part of a school project with Joe Komperda and
+Kyle Lunter, so please don't use it for anything important (many much more
+mature and thoroughly-tested tools are available for FAT manipulation). The
+shell handles many common features such as I/O redirection and piping (see the
+"Extra Features" section).
 
 
 ## Compiling and running
-To compile the shell, simply use the makefile at the command prompt in the directory
-where the files are located by typing 'make' at the command prompt. The 
-executable is named "a.out". NOTE: The image file name for the built-in commands 
-has been hard-coded as "imagefile.img" (in the current directory, so ./imagefile.img). 
-A sample image file is included with the source for your convenience.
+To compile the shell, simply use the makefile at the command prompt in the
+directory where the files are located by typing 'make' at the command prompt.
+The executable is named `a.out`. NOTE: The image file name for the built-in
+commands has been hard-coded as `imagefile.img` (in the current directory, so
+`./imagefile.img`).  A sample image file is included with the source for your
+convenience.
 
 
 ## Sample output
@@ -40,23 +32,30 @@ path import, path commands
 path import appends the currents the current path to the path command
 path shows the current path
 
+```
 flop:/home/student/midarcy/shared/proj4/src$ path import
 flop:/home/student/midarcy/shared/proj4/src$ path
 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
 flop:/home/student/midarcy/shared/proj4/src$ 
+```
 
 cd -  changes current directory
 
+```
 flop:/home/student/midarcy/shared/proj4/src$ cd ..
 flop:/home/student/midarcy/shared/proj4$ cd src
 flop:/home/student/midarcy/shared/proj4/src$ 
+```
 
 we included the current directory path into the flop prompt.
 
+```
 path +, traverse
+```
 
 appended the path to include the directory where out executables were stored ../src
 
+```
 flop:/home/student/midarcy/shared/proj4/test$ path import
 flop:/home/student/midarcy/shared/proj4/test$ path + ../src
 flop:/home/student/midarcy/shared/proj4/test$ traverse
@@ -84,9 +83,11 @@ flop:/home/student/midarcy/shared/proj4/test$ traverse
 /POLYTEST.CLA                                          
 /POLYTEST.JAV                                          
 /SOME.CLA                                              
+```
 
  traverse -l (fixed to include starting sector, includes variable size buffer for different sized windows)
 
+```
 flop:/home/student/midarcy/shared/proj4/test$ traverse -l
         *****************************
         ** FILE ATTRIBUTE NOTATION **
@@ -121,9 +122,11 @@ flop:/home/student/midarcy/shared/proj4/test$ traverse -l
 -A---     10/27/2014 13:13:05               630     /POLYTEST.CLA                                                 28
 -A---     10/27/2014 13:13:05              1063     /POLYTEST.JAV                                                 30
 -A---     10/27/2014 13:13:05               226     /SOME.CLA                                                     33
+```
 
 showfat
 
+```
 flop:/home/student/midarcy/shared/proj4/test$ showfat
          0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
                 FREE    4  fff    6  fff  fff    9  fff  fff    c  fff  fff  fff   10
@@ -143,9 +146,11 @@ flop:/home/student/midarcy/shared/proj4/test$ showfat
    e0 FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE
    f0 FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE FREE
 flop:/home/student/midarcy/shared/proj4/test$ 
+```
 
 showsector 
 
+```
 flop:/home/student/midarcy/shared/proj4/test$ showsector 1
        0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
 
@@ -181,10 +186,12 @@ flop:/home/student/midarcy/shared/proj4/test$ showsector 1
  1D0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0  
  1E0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0  
  1F0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0  
+```
 
 
 showfile
 
+```
 flop:/home/student/midarcy/shared/proj4/test$ showfile /dir1
 
    2e   20   20   20   20   20   20   20   20   20   20   10    0    0   a5   69
@@ -219,9 +226,11 @@ flop:/home/student/midarcy/shared/proj4/test$ showfile /dir1
     0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
     0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
     0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+```
 
 structure
 
+```
 flop:/home/student/midarcy/shared/proj4/test$ structure
                 number of FAT:                     2
                 number of sectors used by FAT:     9
@@ -233,14 +242,17 @@ flop:/home/student/midarcy/shared/proj4/test$ structure
                    01 -- 09              FAT1        
                    10 -- 18              FAT2        
                    19 -- 32              ROOT DIRECTORY
+```
 
 
 normal commands with an arbitrary number of pipes:
 
+```
 flop:~/shared/proj4/src$ ls -l|cat|cat| cat |grep exec
 -rw-rw-r--  1 midarcy  users  7972 Nov 30 21:56 exec_command.c
 -rw-rw-r--  1 midarcy  users   172 Nov 11 09:42 exec_command.h
 -rw-rw-r--  1 jokomper users  7512 Dec  1 11:07 exec_command.o
+```
 
 
 
@@ -249,31 +261,32 @@ The general design for this project was as follows:
 
 Get user input --> Parser --> Executer
 
-The user-prompting code (in flopshell.c and shellinput.c) simply prompts the user and 
-retreives a line of text from the console and passes it to the parser. The parser 
-(in lex.c and parse.c) converts the given text to a FlopCommand struct that holds 
-all relevent information about the command, including the argv array, input file name, 
-and output file name. It also holds a pointer to another FlopCommand that represents 
-the command being piped to (if there was a pipe). After being parsed, the command is 
-executed (code in exec_command.c). The execution code first checks if the command is 
-an internal comamnd, and if so calls the appropriate function. Otherwise, it searches 
-the path variable for the executable file, forks, performs I/O redirection, and waits 
-for the child to terminate before prompting again.
+The user-prompting code (in `flopshell.c` and `shellinput.c`) simply prompts
+the user and retreives a line of text from the console and passes it to the
+parser. The parser (in lex.c and parse.c) converts the given text to
+a FlopCommand struct that holds all relevent information about the command,
+including the argv array, input file name, and output file name. It also holds
+a pointer to another FlopCommand that represents the command being piped to (if
+there was a pipe). After being parsed, the command is executed (code in
+`exec_command.c`). The execution code first checks if the command is an
+internal comamnd, and if so calls the appropriate function. Otherwise, it
+searches the path variable for the executable file, forks, performs I/O
+redirection, and waits for the child to terminate before prompting again.
 
 
 ## Known bugs
 
-1. Command editing doesn't work properly when command wraps to a new line. 
-The buffer is updated correctly, but the display is incorrect. To reproduce 
-this bug, simply type a very long command that wraps to a new line, then 
-repeatedly press Backspace or the Left Arrow key. The cursor will not wrap 
-back to the original line.
+1. Command editing doesn't work properly when command wraps to a new line.  The
+   buffer is updated correctly, but the display is incorrect. To reproduce this
+   bug, simply type a very long command that wraps to a new line, then
+   repeatedly press `Backspace` or the `Left Arrow` key. The cursor will not
+   wrap back to the original line.
 
 2. Commands will fail to execute if there is a file in the PATH that has the
-correct name, but does not have execute permission. For example, if there is 
-a file in the "scratch" directory named "ls", with permissions "-rw-r--r--", 
-and PATH is set to "scratch:/bin", running the command "ls" will produce an 
-error, even though a working ls executable is in /bin.
+   correct name, but does not have execute permission. For example, if there is
+   a file in the `scratch` directory named `ls`, with permissions `-rw-r--r--`,
+   and PATH is set to `scratch:/bin`, running the command `ls` will produce an
+   error, even though a working ls executable is in /bin.
 
 3. Single quotes don't work. Only double quotes are functional.
 
