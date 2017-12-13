@@ -346,4 +346,8 @@ flop:~/shared/proj4/src$ path
 
 
 # License
+
+Copyright (C) 2017 Mike D'Arcy
+
 The program is released under the GNU GPL. See the `COPYING` file for details.
+
