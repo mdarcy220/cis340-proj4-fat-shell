@@ -6,3 +6,5 @@ showsector
 showfile
 showfat
 help
+# Vim swapfiles
+.*.swp
