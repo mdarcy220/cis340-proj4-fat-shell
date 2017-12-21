@@ -351,3 +351,12 @@ Copyright (C) 2017 Mike D'Arcy
 
 The program is released under the GNU GPL. See the `COPYING` file for details.
 
+Please note that while the code is GPL-licensed, **you must still comply with
+applicable law and with the policies at your workplace or university** when
+using it. In particular, you may not use any part of this code in a school
+project if your university or instructor has an anti-plagiarism policy. In
+fact, if you are developing such a school project, I highly recommend that you
+do not even look at this source code, to avoid plagiarizing accidentally.
+I only released the code because, to the best of my knowledge, the course
+I took has now replaced this assignment with a different one.
+
