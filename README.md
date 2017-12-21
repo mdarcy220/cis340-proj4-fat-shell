@@ -10,11 +10,11 @@
 
 ## Description 
 This project implements a command-line interface for a set of floppy-disk
-utilies. It was completed as part of a school project with Joe Komperda and
-Kyle Lunter, so please don't use it for anything important (many much more
-mature and thoroughly-tested tools are available for FAT manipulation). The
-shell handles many common features such as I/O redirection and piping (see the
-"Extra Features" section).
+utilies. It was completed by Mike D'Arcy as part of a school project with Joe
+Komperda and Kyle Lunter, so please don't use it for anything important (many
+much more mature and thoroughly-tested tools are available for FAT
+manipulation). The shell handles many common features such as I/O redirection
+and piping (see the "Extra Features" section).
 
 
 ## Compiling and running
