@@ -213,7 +213,7 @@ static struct Token *Token_new() {
 }
 
 
-// Destroys th given token
+// Destroys the given token
 static void Token_destroy(struct Token *tok) {
 	free(tok->tokStr);
 	free(tok);
@@ -279,19 +279,6 @@ static char getEscapedChar(char c) {
 		return c;
 	}
 }
-
-
-/*
-// Copies the given string into the given buffer, expanding the buffer using
-// realloc if necessary
-static void add_tok_to_arr(struct Token *str, struct Token **arr, size_t arrLen, size_t *arrCap) {
-	if (*arrCap < arrLen + 1) {
-		(*arrCap)++;
-		*arr = realloc(*arr, (*arrCap) * sizeof(**arr));
-	}
-	(*arr)[arrLen] = malloc((strlen(str) + 1) * sizeof(*str));
-	strcpy((*arr)[arrLen], str);
-}*/
 
 
 // Puts the given Token into the given array
